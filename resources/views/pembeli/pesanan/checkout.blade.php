@@ -1,0 +1,110 @@
+<x-pembeli-layout>
+    <div class="mb-4">
+        <a href="{{ route('pembeli.keranjang') }}" class="text-white/70 hover:text-white text-sm">
+            <i class="fas fa-arrow-left mr-1"></i> Kembali ke Keranjang
+        </a>
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-bold text-white mb-8">Checkout</h1>
+
+    <form action="{{ route('pembeli.pesanan.buat') }}" method="POST">
+        @csrf
+        <div class="flex flex-col lg:flex-row gap-8">
+            {{-- Detail Pesanan --}}
+            <div class="flex-1 space-y-6">
+                {{-- Item list --}}
+                <div class="bg-white/90 rounded-3xl p-6 shadow-sm">
+                    <h2 class="text-lg font-bold mb-4">Item Pesanan</h2>
+                    <div class="space-y-4">
+                        @php $subtotal = 0; @endphp
+                        @foreach($keranjang->details as $detail)
+                            @php
+                                $sub = $detail->jumlah * ($detail->varian->harga ?? 0);
+                                $subtotal += $sub;
+                                $foto = $detail->varian->produk->foto
+                                    ? Storage::url($detail->varian->produk->foto)
+                                    : 'https://picsum.photos/id/' . (($detail->varian->produk->id % 50) + 100) . '/80/80';
+                            @endphp
+                            <div class="flex gap-4 items-center">
+                                <img src="{{ $foto }}" class="w-16 h-16 rounded-2xl object-cover">
+                                <div class="flex-1">
+                                    <p class="font-medium text-sm">{{ $detail->varian->produk->nama_produk }}</p>
+                                    <p class="text-xs text-gray-500">{{ $detail->varian->label }} × {{ $detail->jumlah }}</p>
+                                </div>
+                                <p class="font-semibold text-sm">Rp {{ number_format($sub, 0, ',', '.') }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Promo --}}
+                @if($promos->isNotEmpty())
+                    <div class="bg-white/90 rounded-3xl p-6 shadow-sm">
+                        <h2 class="text-lg font-bold mb-4">Kode Promo</h2>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="promo_id" value="" class="accent-[#F3A1BC]" checked>
+                                <span class="text-sm text-gray-600">Tanpa promo</span>
+                            </label>
+                            @foreach($promos as $promo)
+                                <label class="flex items-center gap-3 border border-pink-200 rounded-2xl p-3 cursor-pointer hover:bg-pink-50 transition">
+                                    <input type="radio" name="promo_id" value="{{ $promo->id }}" class="accent-[#F3A1BC]">
+                                    <div>
+                                        <p class="font-semibold text-sm text-pink-600">{{ $promo->kode }}</p>
+                                        <p class="text-xs text-gray-500">{{ $promo->deskripsi ?? 'Diskon spesial' }}</p>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Catatan --}}
+                <div class="bg-white/90 rounded-3xl p-6 shadow-sm">
+                    <h2 class="text-lg font-bold mb-4">Catatan Pesanan</h2>
+                    <textarea name="catatan" rows="3" placeholder="Tulis catatan untuk penjual (opsional)..."
+                        class="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none">{{ old('catatan') }}</textarea>
+                </div>
+            </div>
+
+            {{-- Ringkasan --}}
+            <div class="lg:w-80 flex-shrink-0">
+                <div class="bg-white/90 rounded-3xl p-6 shadow-lg sticky top-24">
+                    <h2 class="text-xl font-bold mb-6">Total Pembayaran</h2>
+
+                    <div class="space-y-3 text-sm mb-6">
+                        <div class="flex justify-between text-gray-600">
+                            <span>Subtotal</span>
+                            <span class="font-medium">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between text-gray-400 text-xs">
+                            <span>Diskon promo</span>
+                            <span>Dihitung otomatis</span>
+                        </div>
+                        <hr>
+                        <div class="flex justify-between text-lg font-bold">
+                            <span>Estimasi Total</span>
+                            <span class="text-[#F3A1BC]">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Info pembeli --}}
+                    <div class="bg-pink-50 rounded-2xl p-3 mb-6 text-sm text-gray-600">
+                        <p class="font-medium text-pink-600 mb-1">
+                            <i class="fas fa-user mr-1"></i> {{ Auth::user()->nama }}
+                        </p>
+                        <p class="text-xs">{{ Auth::user()->email }}</p>
+                        @if(Auth::user()->no_hp)
+                            <p class="text-xs">{{ Auth::user()->no_hp }}</p>
+                        @endif
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-black text-white py-4 rounded-3xl font-semibold text-base hover:bg-gray-800 transition">
+                        <i class="fas fa-check-circle mr-2"></i> Buat Pesanan
+                    </button>
+                    <p class="text-xs text-gray-400 text-center mt-3">Setelah ini kamu akan diminta upload bukti pembayaran</p>
+                </div>
+            </div>
+        </div>
+    </form>
+</x-pembeli-layout>

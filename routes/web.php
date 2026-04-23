@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Pembeli\ProdukController as PembeliProdukController;
+use App\Http\Controllers\Pembeli\KeranjangController;
+use App\Http\Controllers\Pembeli\PesananController as PembeliPesananController;
 use App\Http\Controllers\Karyawan\DashboardController;
 use App\Http\Controllers\Karyawan\PesananController;
 use App\Http\Controllers\Karyawan\PromoController;
@@ -11,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 // ── Halaman publik ───────────────────────────────────────────────────────────────
-Route::get('/', fn () => view('welcome'))->name('home');
+Route::get('/', fn () => redirect()->route('pembeli.index'))->name('home');
 
 // ── Auth routes (Breeze) ─────────────────────────────────────────────────────────
 require __DIR__ . '/auth.php';
@@ -28,7 +31,8 @@ Route::get('/dashboard', function () {
     return match ($user->role) {
         'pemilik'  => redirect()->route('pemilik.dashboard'),
         'karyawan' => redirect()->route('karyawan.dashboard'),
-        default    => redirect()->route('home'),
+        'pembeli'  => redirect()->route('pembeli.index'),
+        default    => redirect()->route('pembeli.index'),
     };
 })->middleware(['auth'])->name('dashboard');
 
@@ -100,6 +104,35 @@ Route::prefix('karyawan')
         Route::get('/riwayat/transaksi/{transaksi}', [RiwayatController::class, 'showTransaksi'])
             ->name('riwayat.transaksi');
     });
+
+
+// ════════════════════════════════════════════════════════════════════════════════
+//  PEMBELI (Storefront)
+// ════════════════════════════════════════════════════════════════════════════════
+
+// ── Produk publik (tanpa login) ───────────────────────────────────────────────
+Route::get('/toko',                [PembeliProdukController::class, 'index'])->name('pembeli.index');
+Route::get('/toko/produk/{slug}',  [PembeliProdukController::class, 'show'])->name('pembeli.produk.show');
+
+// ── Route yang butuh login ────────────────────────────────────────────────────
+Route::middleware(['auth'])->group(function () {
+
+    // Keranjang — KeranjangController
+    Route::get   ('/keranjang',           [KeranjangController::class, 'index']) ->name('pembeli.keranjang');
+    Route::post  ('/keranjang',           [KeranjangController::class, 'tambah'])->name('pembeli.keranjang.tambah');
+    Route::patch ('/keranjang/{detail}',  [KeranjangController::class, 'update'])->name('pembeli.keranjang.update');
+    Route::delete('/keranjang/{detail}',  [KeranjangController::class, 'hapus']) ->name('pembeli.keranjang.hapus');
+
+    // Pesanan — PesananController
+    Route::get ('/checkout',          [PembeliPesananController::class, 'checkout'])      ->name('pembeli.checkout');
+    Route::post('/pesanan',           [PembeliPesananController::class, 'store'])          ->name('pembeli.pesanan.buat');
+    Route::get ('/pesanan',           [PembeliPesananController::class, 'index'])          ->name('pembeli.pesanan.index');
+    Route::get ('/pesanan/{pesanan}', [PembeliPesananController::class, 'show'])           ->name('pembeli.pesanan.show');
+
+    // Pembayaran (bagian alur pesanan) — tetap di PesananController
+    Route::get ('/pembayaran/{pesanan}', [PembeliPesananController::class, 'formPembayaran'])->name('pembeli.pesanan.pembayaran');
+    Route::post('/pembayaran/{pesanan}', [PembeliPesananController::class, 'uploadBukti'])   ->name('pembeli.pembayaran.upload');
+});
 
 
 // ════════════════════════════════════════════════════════════════════════════════

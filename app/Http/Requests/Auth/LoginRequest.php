@@ -14,6 +14,8 @@ class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * @psalm-pure
      */
     public function authorize(): bool
     {
@@ -24,6 +26,7 @@ class LoginRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
+     * @psalm-pure
      */
     public function rules(): array
     {

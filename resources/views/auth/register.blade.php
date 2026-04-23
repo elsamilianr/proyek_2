@@ -1,52 +1,56 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
-
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar — Kiki Hijab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#F3A1BC] min-h-screen flex items-center justify-center font-sans py-10">
+    <div class="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md mx-4">
+        <div class="flex justify-center mb-6">
+            <div class="w-16 h-16 bg-[#F3A1BC] rounded-2xl flex items-center justify-center text-4xl font-bold text-white">K</div>
         </div>
+        <h1 class="text-3xl font-bold text-center mb-1">KIKI HIJAB</h1>
+        <p class="text-center text-gray-500 text-sm mb-8">Buat akun untuk mulai belanja</p>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <form method="POST" action="{{ route('register') }}" class="space-y-4">
+            @csrf
+            <div>
+                <input type="text" name="nama" value="{{ old('nama') }}" placeholder="Nama Lengkap" required
+                    class="w-full px-6 py-4 rounded-3xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#F3A1BC] text-sm">
+                @error('nama')<p class="text-red-500 text-xs mt-1 pl-2">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <input type="text" name="username" value="{{ old('username') }}" placeholder="Username" required
+                    class="w-full px-6 py-4 rounded-3xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#F3A1BC] text-sm">
+                @error('username')<p class="text-red-500 text-xs mt-1 pl-2">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <input type="email" name="email" value="{{ old('email') }}" placeholder="Email" required
+                    class="w-full px-6 py-4 rounded-3xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#F3A1BC] text-sm">
+                @error('email')<p class="text-red-500 text-xs mt-1 pl-2">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <input type="password" name="password" placeholder="Password" required
+                    class="w-full px-6 py-4 rounded-3xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#F3A1BC] text-sm">
+                @error('password')<p class="text-red-500 text-xs mt-1 pl-2">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <input type="password" name="password_confirmation" placeholder="Konfirmasi Password" required
+                    class="w-full px-6 py-4 rounded-3xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#F3A1BC] text-sm">
+            </div>
+            <button type="submit" class="w-full bg-black text-white py-4 rounded-3xl font-semibold text-base hover:bg-gray-800 transition">
+                Daftar Sekarang
+            </button>
+        </form>
+
+        <p class="text-center text-sm text-gray-500 mt-6">
+            Sudah punya akun? <a href="{{ route('login') }}" class="text-[#F3A1BC] font-semibold hover:underline">Masuk</a>
+        </p>
+        <div class="mt-4 text-center">
+            <a href="{{ route('pembeli.index') }}" class="text-xs text-gray-400 hover:text-gray-600">← Kembali ke Toko</a>
         </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+    </div>
+</body>
+</html>
