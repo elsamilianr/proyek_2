@@ -145,3 +145,7 @@ Route::prefix('pemilik')
         Route::get('/dashboard', fn () => view('pemilik.dashboard'))
             ->name('dashboard');
     });
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', fn () => redirect()->route('dashboard'))->name('profile.edit');
+});

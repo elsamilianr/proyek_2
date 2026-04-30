@@ -31,7 +31,7 @@ class VarianController extends Controller
 
         $varians = $query->paginate(15)->withQueryString();
 
-        return view('karyawan.varian.index', compact('varians'));
+        return view('karyawan.stok.index', compact('varians'));
     }
 
     // FR-14.01: Tambah varian pada produk
