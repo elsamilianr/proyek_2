@@ -12,20 +12,20 @@
         <div class="stat-icon">🎁</div>
         <div class="stat-label">Penjualan Hari Ini</div>
         <div>
-            <span class="stat-value">{{ $penjualanHariIni ?? 10 }}</span>
+            <span class="stat-value">{{ $penjualanHariIni }}</span>
             <span class="stat-sub"> transaksi</span>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon">👜</div>
         <div class="stat-label">Total Transaksi</div>
-        <div class="stat-value">Rp{{ number_format($totalTransaksi ?? 1500000, 0, ',', '.') }}</div>
+        <div class="stat-value">Rp{{ number_format($totalTransaksi, 0, ',', '.') }}</div>
         <div class="stat-sub">hari ini</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon">⚠️</div>
         <div class="stat-label">Stok Menipis</div>
-        <div class="stat-value">{{ $stokMenipis ?? 3 }} <span class="stat-sub">produk</span></div>
+        <div class="stat-value">{{ $stokMenipis }} <span class="stat-sub">produk</span></div>
     </div>
 </div>
 
@@ -43,32 +43,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($pesananMasuk ?? [] as $pesanan)
+                    @forelse($pesananMasuk as $pesanan)
                     <tr>
-                        <td>{{ $pesanan->id }}</td>
-                        <td>{{ \Carbon\Carbon::parse($pesanan->tanggal)->format('d-m-Y') }}</td>
+                        <td>{{ $pesanan->kode_pesanan }}</td>
+                        <td>{{ $pesanan->created_at->format('d-m-Y') }}</td>
                         <td>
-                            <span class="status-{{ strtolower(str_replace(' ', '', $pesanan->status)) }}">
-                                {{ $pesanan->status }}
+                            <span class="status-{{ str_replace('_', '', $pesanan->status_pesanan) }}">
+                                {{ ucwords(str_replace('_', ' ', $pesanan->status_pesanan)) }}
                             </span>
                         </td>
                     </tr>
                     @empty
-                    {{-- Sample data for display --}}
                     <tr>
-                        <td>423526</td>
-                        <td>22-02-2026</td>
-                        <td><span class="status-menunggu">Menunggu</span></td>
-                    </tr>
-                    <tr>
-                        <td>423526</td>
-                        <td>22-02-2026</td>
-                        <td><span class="status-menunggu">Menunggu</span></td>
-                    </tr>
-                    <tr>
-                        <td>423526</td>
-                        <td>22-02-2026</td>
-                        <td><span class="status-menunggu">Menunggu</span></td>
+                        <td colspan="3" style="text-align:center;color:#bbb;padding:14px">
+                            Belum ada pesanan masuk
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -87,15 +76,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($stokMenipisData ?? [] as $stok)
+                    @forelse($stokMenipisData as $stok)
                     <tr>
-                        <td>{{ $stok->produk->nama ?? '-' }}</td>
-                        <td>{{ $stok->jumlah }}</td>
+                        <td>{{ $stok->produk->nama_produk ?? '-' }}</td>
+                        <td>{{ $stok->stok }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="2">&nbsp;</td></tr>
-                    <tr><td colspan="2">&nbsp;</td></tr>
-                    <tr><td colspan="2">&nbsp;</td></tr>
+                    <tr>
+                        <td colspan="2" style="text-align:center;color:#bbb;padding:14px">
+                            Stok aman
+                        </td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -116,17 +107,19 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($transaksiHariIni ?? [] as $transaksi)
+            @forelse($transaksiHariIni as $transaksi)
             <tr>
-                <td>{{ $transaksi->id }}</td>
-                <td>{{ \Carbon\Carbon::parse($transaksi->tanggal)->format('d-m-Y') }}</td>
+                <td>{{ $transaksi->kode_transaksi }}</td>
+                <td>{{ $transaksi->created_at->format('d-m-Y') }}</td>
                 <td>Rp{{ number_format($transaksi->total, 0, ',', '.') }}</td>
-                <td>{{ $transaksi->metode_pembayaran }}</td>
+                <td>{{ ucfirst($transaksi->metode_bayar) }}</td>
             </tr>
             @empty
-            <tr><td colspan="4">&nbsp;</td></tr>
-            <tr><td colspan="4">&nbsp;</td></tr>
-            <tr><td colspan="4">&nbsp;</td></tr>
+            <tr>
+                <td colspan="4" style="text-align:center;color:#bbb;padding:14px">
+                    Belum ada transaksi hari ini
+                </td>
+            </tr>
             @endforelse
         </tbody>
     </table>

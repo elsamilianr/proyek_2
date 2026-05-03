@@ -50,9 +50,13 @@
                                 @php
                                     $foto = $detail->varian?->produk?->foto
                                         ? Storage::url($detail->varian->produk->foto)
-                                        : 'https://picsum.photos/id/' . (($detail->varian?->produk?->id % 50 ?? 10) + 100) . '/40/40';
+                                        : null;
                                 @endphp
-                                <img src="{{ $foto }}" class="w-10 h-10 rounded-xl object-cover">
+                                @if($foto)
+                                    <img src="{{ $foto }}" class="w-10 h-10 rounded-xl object-cover">
+                                @else
+                                    <div class="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center text-lg">🧥</div>
+                                @endif
                             @endforeach
                             @if($pesanan->details->count() > 3)
                                 <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xs text-gray-500 font-medium">

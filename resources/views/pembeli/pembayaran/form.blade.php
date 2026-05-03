@@ -69,9 +69,9 @@
                 <div class="mb-5">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Metode Pembayaran</label>
                     <div class="flex gap-3 flex-wrap">
-                        @foreach(['transfer_bank' => 'Transfer Bank', 'qris' => 'QRIS', 'cod' => 'COD'] as $val => $label)
+                        @foreach(['transfer' => 'Transfer Bank', 'qris' => 'QRIS', 'cash' => 'COD / Tunai'] as $val => $label)
                             <label class="cursor-pointer">
-                                <input type="radio" name="metode" value="{{ $val }}" class="hidden peer" {{ old('metode', 'transfer_bank') === $val ? 'checked' : '' }}>
+                                <input type="radio" name="metode" value="{{ $val }}" class="hidden peer" {{ old('metode', 'transfer') === $val ? 'checked' : '' }}>
                                 <span class="block px-4 py-3 border border-gray-300 rounded-2xl text-sm font-medium transition
                                     peer-checked:border-[#F3A1BC] peer-checked:bg-pink-50 peer-checked:text-pink-600 hover:border-pink-300">
                                     {{ $label }}

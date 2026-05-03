@@ -16,92 +16,91 @@
 </div>
 
 <div id="pesananList">
-    @forelse($pesanans ?? [] as $pesanan)
-    <div class="pesanan-card" data-id="{{ $pesanan->id }}">
-        <div class="pesanan-card-header">#Pesanan{{ $pesanan->id }}</div>
+    @forelse($pesanans as $pesanan)
+    <div class="pesanan-card" data-kode="{{ strtolower($pesanan->kode_pesanan) }}">
+        <div class="pesanan-card-header">#{{ $pesanan->kode_pesanan }}</div>
         <div class="pesanan-info-grid">
             <div>
+                <div class="pesanan-info-label">Pembeli:</div>
+                <div class="pesanan-info-value">{{ $pesanan->pembeli?->nama ?? '-' }}</div>
+            </div>
+            <div>
                 <div class="pesanan-info-label">Total:</div>
-                <div class="pesanan-info-value">Rp{{ number_format($pesanan->total, 0, ',', '.') }}</div>
+                <div class="pesanan-info-value">Rp{{ number_format($pesanan->total_harga, 0, ',', '.') }}</div>
             </div>
             <div>
                 <div class="pesanan-info-label">Tanggal Pesan:</div>
-                <div class="pesanan-info-value">
-                    {{ \Carbon\Carbon::parse($pesanan->tanggal)->translatedFormat('d F Y') }}
-                </div>
+                <div class="pesanan-info-value">{{ $pesanan->created_at->format('d M Y') }}</div>
             </div>
             <div>
                 <div class="pesanan-info-label">Metode Pembayaran:</div>
-                <div class="pesanan-info-value">{{ $pesanan->metode_pembayaran }}</div>
+                <div class="pesanan-info-value">
+                    {{ $pesanan->pembayaran ? ucfirst(str_replace('_', ' ', $pesanan->pembayaran->metode)) : '-' }}
+                </div>
             </div>
             <div>
                 <div class="pesanan-info-label">Status Pesanan:</div>
                 <div class="pesanan-info-value">
-                    @if($pesanan->status == 'Dalam Proses')
-                        <span class="status-proses">Dalam Proses</span>
-                    @elseif($pesanan->status == 'Selesai')
-                        <span class="status-selesai">Selesai</span>
-                    @else
-                        <span class="status-menunggu">{{ $pesanan->status }}</span>
-                    @endif
+                    @php
+                        $statusClass = match($pesanan->status_pesanan) {
+                            'selesai'              => 'status-selesai',
+                            'diproses'             => 'status-proses',
+                            'dibatalkan'           => 'status-batal',
+                            default                => 'status-menunggu',
+                        };
+                        $statusLabel = match($pesanan->status_pesanan) {
+                            'menunggu_pembayaran'  => 'Menunggu Pembayaran',
+                            'menunggu_verifikasi'  => 'Menunggu Verifikasi',
+                            'diproses'             => 'Dalam Proses',
+                            'selesai'              => 'Selesai',
+                            'dibatalkan'           => 'Dibatalkan',
+                            default                => ucfirst($pesanan->status_pesanan),
+                        };
+                    @endphp
+                    <span class="{{ $statusClass }}">{{ $statusLabel }}</span>
                 </div>
             </div>
         </div>
+
+        {{-- Foto produk --}}
         <div class="pesanan-info-label" style="margin-bottom:10px;">Produk:</div>
         <div class="pesanan-products">
-            @foreach($pesanan->items ?? [] as $item)
+            @foreach($pesanan->details->take(5) as $detail)
             <div class="pesanan-product-img">
-                @if($item->produk->gambar ?? null)
-                    <img src="{{ asset('storage/' . $item->produk->gambar) }}" alt="{{ $item->produk->nama }}">
+                @if($detail->varian?->produk?->foto)
+                    <img src="{{ asset('storage/' . $detail->varian->produk->foto) }}"
+                         alt="{{ $detail->varian->produk->nama_produk }}"
+                         style="width:100%;height:100%;object-fit:cover;border-radius:12px;">
                 @else
-                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">🧥</div>
+                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--pink-light);border-radius:12px;">🧥</div>
                 @endif
             </div>
             @endforeach
         </div>
 
-        {{-- Update status --}}
-        @if($pesanan->status != 'Selesai')
-        <form action="{{ route('karyawan.pesanan.update', $pesanan->id) }}" method="POST" style="margin-top:12px;">
-            @csrf @method('PUT')
-            <input type="hidden" name="status" value="Selesai">
-            <button type="submit"
-                style="background:var(--green-btn);color:white;border:none;border-radius:8px;padding:8px 20px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;">
-                Tandai Selesai
-            </button>
-        </form>
-        @endif
+        {{-- Tombol aksi --}}
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{{ route('karyawan.pesanan.show', $pesanan->id) }}"
+               style="background:var(--pink-light);color:var(--text-dark);border:none;border-radius:8px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;text-decoration:none;font-size:13px;">
+                Lihat Detail
+            </a>
+
+            @if(in_array($pesanan->status_pesanan, ['menunggu_verifikasi', 'diproses']))
+            <form action="{{ route('karyawan.pesanan.update-status', $pesanan->id) }}" method="POST" style="display:inline;">
+                @csrf @method('PATCH')
+                <input type="hidden" name="status" value="selesai">
+                <button type="submit" onclick="return confirm('Tandai pesanan ini selesai?')"
+                    style="background:#d1fae5;color:#065f46;border:none;border-radius:8px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;font-size:13px;">
+                    Tandai Selesai
+                </button>
+            </form>
+            @endif
+        </div>
     </div>
     @empty
-    {{-- Dummy --}}
-    <div class="pesanan-card">
-        <div class="pesanan-card-header">#Pesanan423526</div>
-        <div class="pesanan-info-grid">
-            <div>
-                <div class="pesanan-info-label">Total:</div>
-                <div class="pesanan-info-value">Rp796.000</div>
-            </div>
-            <div>
-                <div class="pesanan-info-label">Tanggal Pesan:</div>
-                <div class="pesanan-info-value">30 September 2025</div>
-            </div>
-            <div>
-                <div class="pesanan-info-label">Metode Pembayaran:</div>
-                <div class="pesanan-info-value">Qris</div>
-            </div>
-            <div>
-                <div class="pesanan-info-label">Status Pesanan:</div>
-                <div class="pesanan-info-value"><span class="status-proses">Dalam Proses</span></div>
-            </div>
-        </div>
-        <div class="pesanan-info-label" style="margin-bottom:10px;">Produk:</div>
-        <div class="pesanan-products">
-            @for($i = 0; $i < 4; $i++)
-            <div class="pesanan-product-img">
-                <div style="width:100%;height:100%;background:var(--pink-light);display:flex;align-items:center;justify-content:center;font-size:28px;border-radius:12px;">🧥</div>
-            </div>
-            @endfor
-        </div>
+    <div style="text-align:center; padding:60px 20px; color:#aaa;">
+        <div style="font-size:48px; margin-bottom:16px;">📋</div>
+        <p style="font-size:16px; font-weight:600;">Belum ada pesanan</p>
     </div>
     @endforelse
 </div>
@@ -113,9 +112,9 @@
 function filterPesanan(val) {
     const cards = document.querySelectorAll('#pesananList .pesanan-card');
     cards.forEach(card => {
-        const id = (card.dataset.id || '').toString();
+        const kode = card.dataset.kode || '';
         const text = card.textContent.toLowerCase();
-        card.style.display = (text.includes(val.toLowerCase()) || id.includes(val)) ? '' : 'none';
+        card.style.display = (text.includes(val.toLowerCase()) || kode.includes(val.toLowerCase())) ? '' : 'none';
     });
 }
 </script>

@@ -22,23 +22,32 @@
 </div>
 
 <div class="products-grid" id="produkGrid">
-    @forelse($produks ?? [] as $produk)
-    <div class="product-card" data-name="{{ strtolower($produk->nama) }}">
+    @forelse($produks as $produk)
+    <div class="product-card" data-name="{{ strtolower($produk->nama_produk) }}">
         <div class="product-card-image">
-            @if($produk->gambar)
-                <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}">
+            @if($produk->foto)
+                <img src="{{ asset('storage/' . $produk->foto) }}" alt="{{ $produk->nama_produk }}" style="width:100%;height:100%;object-fit:cover;">
             @else
                 <div style="width:100%;height:100%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:40px;">📦</div>
             @endif
         </div>
         <div class="product-card-body">
             <div>
-                <div class="product-card-name">{{ $produk->nama }}</div>
-                <div class="product-card-price">Rp{{ number_format($produk->harga, 0, ',', '.') }}</div>
+                <div class="product-card-name">{{ $produk->nama_produk }}</div>
+                <div class="product-card-price">
+                    @if($produk->varians->isNotEmpty())
+                        Rp{{ number_format($produk->varians->min('harga'), 0, ',', '.') }}
+                        @if($produk->varians->count() > 1)
+                            – Rp{{ number_format($produk->varians->max('harga'), 0, ',', '.') }}
+                        @endif
+                    @else
+                        <span style="color:#aaa;font-size:12px;">Belum ada varian</span>
+                    @endif
+                </div>
             </div>
             <div class="product-card-menu" onclick="toggleMenu({{ $produk->id }})">•••</div>
         </div>
-        <div id="menu-{{ $produk->id }}" style="display:none; padding: 0 16px 12px; display:none;">
+        <div id="menu-{{ $produk->id }}" style="display:none; padding: 0 16px 12px;">
             <a href="{{ route('karyawan.produk.edit', $produk->id) }}"
                 style="display:block; padding:8px; background:var(--pink-light); border-radius:8px; text-align:center; font-weight:700; text-decoration:none; color:var(--text-dark); margin-bottom:6px;">
                 Edit
@@ -54,21 +63,11 @@
         </div>
     </div>
     @empty
-    {{-- Tampilan dummy jika belum ada data --}}
-    @for($i = 0; $i < 6; $i++)
-    <div class="product-card">
-        <div class="product-card-image">
-            <div style="width:100%;height:200px;background:linear-gradient(135deg,#f5f5f5,#e8e8e8);display:flex;align-items:center;justify-content:center;color:#ccc;font-size:40px;">🧥</div>
-        </div>
-        <div class="product-card-body">
-            <div>
-                <div class="product-card-name">Basic Slim Fit T-Shirt</div>
-                <div class="product-card-price">Rp199.000</div>
-            </div>
-            <div class="product-card-menu">•••</div>
-        </div>
+    <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:#aaa;">
+        <div style="font-size:48px; margin-bottom:16px;">📦</div>
+        <p style="font-size:16px; font-weight:600; margin-bottom:8px;">Belum ada produk</p>
+        <p style="font-size:13px;">Klik <strong>+ Tambah</strong> untuk menambahkan produk pertama.</p>
     </div>
-    @endfor
     @endforelse
 </div>
 
@@ -85,6 +84,10 @@ function filterProduk(val) {
 }
 
 function toggleMenu(id) {
+    // tutup semua menu lain dulu
+    document.querySelectorAll('[id^="menu-"]').forEach(m => {
+        if (m.id !== 'menu-' + id) m.style.display = 'none';
+    });
     const menu = document.getElementById('menu-' + id);
     if (menu) {
         menu.style.display = menu.style.display === 'none' ? 'block' : 'none';

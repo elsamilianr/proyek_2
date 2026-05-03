@@ -6,85 +6,145 @@
 
 <div class="page-header">
     <h1 class="page-title">Promo</h1>
-    <div style="display:flex;gap:12px;align-items:center;">
+
+    <div style="display:flex; gap:12px; align-items:center;">
         <div class="search-bar">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z" />
             </svg>
-            <input type="text" placeholder="cari..." oninput="filterPromo(this.value)">
+            <input type="text" placeholder="cari promo..." id="searchPromo" oninput="filterPromo(this.value)">
         </div>
-        <a href="{{ route('karyawan.promo.create') }}" class="btn-tambah">+ Tambah</a>
+
+        <a href="{{ route('karyawan.promo.create') }}" class="btn-tambah">
+            + Tambah
+        </a>
     </div>
 </div>
 
-<div class="promo-list" id="promoList">
-    @forelse($promos ?? [] as $promo)
-    <div class="promo-card" data-search="{{ strtolower($promo->produk->nama ?? '') }}">
-        <div class="promo-img">
-            @if($promo->produk->gambar ?? null)
-                <img src="{{ asset('storage/' . $promo->produk->gambar) }}" alt="{{ $promo->produk->nama }}">
+<div class="products-grid" id="promoGrid">
+
+    @forelse($promos as $promo)
+    <div class="product-card" data-name="{{ strtolower($promo->nama_promo) }}">
+
+        <div class="product-card-image">
+            @if($promo->foto)
+                <img src="{{ asset('storage/' . $promo->foto) }}"
+                     alt="{{ $promo->nama_promo }}"
+                     style="width:100%;height:100%;object-fit:cover;">
             @else
-                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--pink-light);border-radius:12px;">🧥</div>
+                <div style="width:100%;height:100%;background:#fdf2f8;display:flex;align-items:center;justify-content:center;color:#ec4899;font-size:42px;">
+                    🎁
+                </div>
             @endif
         </div>
-        <div class="promo-info" style="flex:1;">
-            <h3>Promo Untuk {{ $promo->produk->nama ?? 'Produk' }}</h3>
-            <p>Diskon: {{ $promo->diskon }}%</p>
-            <p>Tanggal Mulai - Berakhir:
-                {{ \Carbon\Carbon::parse($promo->tanggal_mulai)->format('d M Y') }}
-                Sampai Di
-                {{ \Carbon\Carbon::parse($promo->tanggal_berakhir)->format('d M Y') }}
-            </p>
-            <p>Status:
-                <span class="{{ $promo->status == 'Aktif' ? 'promo-status-aktif' : 'status-proses' }}">
-                    {{ $promo->status }}
-                </span>
-            </p>
+
+        <div class="product-card-body">
+            <div>
+                <div class="product-card-name">
+                    {{ $promo->nama_promo }}
+                </div>
+
+                <div style="font-size:13px;color:var(--text-gray);margin-bottom:6px;">
+                    @if($promo->tipe_diskon === 'persen')
+                        Diskon {{ $promo->diskon }}%
+                    @else
+                        Diskon Rp{{ number_format($promo->diskon,0,',','.') }}
+                    @endif
+                </div>
+
+                <div style="font-size:12px;color:#888;">
+                    {{ $promo->tanggal_mulai->format('d M Y') }}
+                    -
+                    {{ $promo->tanggal_selesai->format('d M Y') }}
+                </div>
+
+                <div style="margin-top:8px;">
+                    <span style="
+                        padding:5px 10px;
+                        border-radius:999px;
+                        font-size:11px;
+                        font-weight:700;
+                        background:
+                        {{ $promo->status === 'aktif' ? '#dcfce7' : '#fef3c7' }};
+                        color:
+                        {{ $promo->status === 'aktif' ? '#166534' : '#92400e' }};
+                    ">
+                        {{ ucfirst($promo->status) }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="product-card-menu" onclick="toggleMenu({{ $promo->id }})">
+                •••
+            </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-            <a href="{{ route('karyawan.promo.edit', $promo->id) }}"
-                style="background:var(--pink-btn);color:white;border:none;border-radius:8px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;font-size:13px;">
-                Edit
+
+        <div id="menu-{{ $promo->id }}" style="display:none; padding:0 16px 12px;">
+
+            <a href="{{ route('karyawan.promo.show', $promo->id) }}"
+                style="display:block;padding:8px;background:var(--pink-light);border-radius:8px;text-align:center;font-weight:700;text-decoration:none;color:var(--text-dark);margin-bottom:6px;">
+                Detail
             </a>
-            <form action="{{ route('karyawan.promo.destroy', $promo->id) }}" method="POST"
+
+            <form action="{{ route('karyawan.promo.destroy', $promo->id) }}"
+                method="POST"
                 onsubmit="return confirm('Hapus promo ini?')">
-                @csrf @method('DELETE')
+                @csrf
+                @method('DELETE')
+
                 <button type="submit"
-                    style="width:100%;background:#fee2e2;border:none;border-radius:8px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;color:#dc2626;font-size:13px;">
+                    style="width:100%;padding:8px;background:#fee2e2;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:700;cursor:pointer;color:#dc2626;">
                     Hapus
                 </button>
             </form>
         </div>
     </div>
+
     @empty
-    {{-- Dummy --}}
-    @for($i = 0; $i < 3; $i++)
-    <div class="promo-card">
-        <div class="promo-img">
-            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--pink-light);border-radius:12px;">🧥</div>
-        </div>
-        <div class="promo-info">
-            <h3>Promo Untuk Produk A</h3>
-            <p>Diskon: 30%</p>
-            <p>Tanggal Mulai - Berakhir: 22 Mei 2026 Sampai Di 30 Mei 2026</p>
-            <p>Status: <span class="promo-status-aktif">Aktif</span></p>
-        </div>
+    <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#aaa;">
+        <div style="font-size:48px;margin-bottom:16px;">🎁</div>
+        <p style="font-size:16px;font-weight:600;margin-bottom:8px;">
+            Belum ada promo
+        </p>
+        <p style="font-size:13px;">
+            Klik <strong>+ Tambah</strong> untuk membuat promo pertama.
+        </p>
     </div>
-    @endfor
     @endforelse
+
 </div>
+
+@if($promos->hasPages())
+<div style="margin-top:24px;">
+    {{ $promos->links() }}
+</div>
+@endif
 
 @endsection
 
 @push('scripts')
 <script>
 function filterPromo(val) {
-    const cards = document.querySelectorAll('#promoList .promo-card');
-    cards.forEach(card => {
-        const text = card.textContent.toLowerCase();
-        card.style.display = text.includes(val.toLowerCase()) ? '' : 'none';
+    document.querySelectorAll('#promoGrid .product-card').forEach(card => {
+        const name = card.dataset.name || '';
+        card.style.display = name.includes(val.toLowerCase()) ? '' : 'none';
     });
+}
+
+function toggleMenu(id) {
+    document.querySelectorAll('[id^="menu-"]').forEach(menu => {
+        if(menu.id !== 'menu-' + id){
+            menu.style.display = 'none';
+        }
+    });
+
+    const menu = document.getElementById('menu-' + id);
+
+    if(menu){
+        menu.style.display =
+            menu.style.display === 'none' ? 'block' : 'none';
+    }
 }
 </script>
 @endpush

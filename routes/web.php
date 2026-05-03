@@ -133,19 +133,3 @@ Route::middleware(['auth'])->group(function () {
     Route::get ('/pembayaran/{pesanan}', [PembeliPesananController::class, 'formPembayaran'])->name('pembeli.pesanan.pembayaran');
     Route::post('/pembayaran/{pesanan}', [PembeliPesananController::class, 'uploadBukti'])   ->name('pembeli.pembayaran.upload');
 });
-
-
-// ════════════════════════════════════════════════════════════════════════════════
-//  PEMILIK
-// ════════════════════════════════════════════════════════════════════════════════
-Route::prefix('pemilik')
-    ->name('pemilik.')
-    ->middleware(['auth', 'role:pemilik'])
-    ->group(function () {
-        Route::get('/dashboard', fn () => view('pemilik.dashboard'))
-            ->name('dashboard');
-    });
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', fn () => redirect()->route('dashboard'))->name('profile.edit');
-});

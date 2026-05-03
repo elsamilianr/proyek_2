@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Karyawan;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
@@ -11,7 +12,9 @@ class PesananController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Pesanan::with(['pembeli', 'pembayaran'])->latest();
+        $query = Pesanan::with(['pembeli', 'pembayaran'])
+            ->whereNotIn('status_pesanan', ['selesai', 'dibatalkan'])
+            ->latest();
 
         if ($request->filled('status')) {
             $query->where('status_pesanan', $request->status);
@@ -20,9 +23,9 @@ class PesananController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('kode_pesanan', 'like', '%' . $request->search . '%')
-                    ->orWhereHas('pembeli', fn ($u) =>
-                        $u->where('nama', 'like', '%' . $request->search . '%')
-                    );
+                    ->orWhereHas('pembeli', function ($u) use ($request) {
+                        $u->where('nama', 'like', '%' . $request->search . '%');
+                    });
             });
         }
 
@@ -37,7 +40,6 @@ class PesananController extends Controller
         return view('karyawan.pesanan.show', compact('pesanan'));
     }
 
-    // FR-15.01: Verifikasi / tolak pembayaran
     public function verifikasiPembayaran(Request $request, Pesanan $pesanan)
     {
         $request->validate([
@@ -49,17 +51,21 @@ class PesananController extends Controller
         $pembayaran = $pesanan->pembayaran;
 
         abort_if(! $pembayaran, 404, 'Data pembayaran tidak ditemukan.');
+
         abort_if(
             ! in_array($pembayaran->status_pembayaran, ['pending', 'menunggu_verifikasi']),
             422,
             'Status pembayaran sudah diproses.'
         );
 
-        // FIX: null-safe operator ?-> agar tidak error jika user null
         $karyawanId = (int) Auth::user()->id;
         $diterima   = $request->aksi === 'terima';
 
-        $pembayaran->konfirmasiPembayaran($karyawanId, $diterima, $request->catatan);
+        $pembayaran->konfirmasiPembayaran(
+            $karyawanId,
+            $diterima,
+            $request->catatan
+        );
 
         $pesan = $diterima
             ? 'Pembayaran berhasil diverifikasi. Pesanan sedang diproses.'
@@ -68,21 +74,25 @@ class PesananController extends Controller
         return back()->with('success', $pesan);
     }
 
-    // FR-15.02: Ubah status pesanan
     public function updateStatus(Request $request, Pesanan $pesanan)
     {
         $request->validate([
             'status' => 'required|in:diproses,selesai,dibatalkan',
         ]);
 
-        if ($request->status === 'dibatalkan' && $pesanan->status_pesanan !== 'dibatalkan') {
+        if (
+            $request->status === 'dibatalkan'
+            && $pesanan->status_pesanan !== 'dibatalkan'
+        ) {
             DB::transaction(function () use ($pesanan, $request) {
                 $pesanan->load('details.varian');
+
                 foreach ($pesanan->details as $detail) {
                     if ($detail->varian) {
                         $detail->varian->tambahStok($detail->jumlah);
                     }
                 }
+
                 $pesanan->ubahStatus($request->status);
             });
         } else {

@@ -31,10 +31,10 @@
         </thead>
         <tbody>
             @forelse($varians ?? [] as $varian)
-            <tr data-search="{{ strtolower($varian->produk->nama ?? '') }}">
-                <td>{{ $varian->produk->nama ?? '-' }}</td>
-                <td>{{ $varian->warna }}</td>
-                <td>{{ $varian->ukuran }}</td>
+            <tr data-search="{{ strtolower($varian->produk->nama_produk ?? '') }}">
+                <td>{{ $varian->produk->nama_produk ?? '-' }}</td>
+                <td>{{ $varian->warna ?? '-' }}</td>
+                <td>{{ $varian->size ?? '-' }}</td>
                 <td>{{ $varian->stok }}</td>
                 <td>{{ $varian->updated_at ? \Carbon\Carbon::parse($varian->updated_at)->format('d-m-Y') : '-' }}</td>
                 <td>
@@ -57,7 +57,7 @@
             @method('PATCH')
             <div class="form-group">
                 <label class="form-label">Jumlah Tambah Stok</label>
-                <input class="form-input" type="number" name="tambah" min="1" value="1" required>
+                <input class="form-input" type="number" name="jumlah" min="1" value="1" required>
             </div>
             <button type="submit" class="form-btn" style="margin-top:16px;">Simpan</button>
         </form>
