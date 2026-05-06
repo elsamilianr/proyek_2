@@ -35,9 +35,9 @@ class TransaksiController extends Controller
             ->where('stok', '>', 0)
             ->where(function ($q) use ($keyword) {
                 $q->where('sku', 'like', '%' . $keyword . '%')
-                    ->orWhereHas('produk', function ($p) use ($keyword) {
-                        $p->where('nama_produk', 'like', '%' . $keyword . '%');
-                    });
+                ->orWhereHas('produk', function ($p) use ($keyword) {
+                    $p->where('nama_produk', 'like', '%' . $keyword . '%');
+                });
             })
             ->take(10)
             ->get();

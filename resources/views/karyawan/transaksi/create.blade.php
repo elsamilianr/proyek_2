@@ -84,8 +84,8 @@
 
 @push('scripts')
 <script>
-const varians = @json($varians);
 let cart = {};
+let hasilSearch = {};
 
 function getImage(foto){
     if(foto){
@@ -98,89 +98,107 @@ function getImage(foto){
     </div>`;
 }
 
+// 🔍 SEARCH KE BACKEND
 function cariProduk(keyword){
-    const results=document.getElementById('searchResults');
-    keyword=keyword.toLowerCase();
+    const results = document.getElementById('searchResults');
 
     if(!keyword){
-        results.innerHTML=`
+        results.innerHTML = `
         <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#aaa;">
             Ketik nama produk
         </div>`;
         return;
     }
 
-    const filtered=varians.filter(v =>
-        v.produk.nama_produk.toLowerCase().includes(keyword)
-    );
+    fetch(`/karyawan/transaksi/cari-varian?q=${keyword}`)
+        .then(res => res.json())
+        .then(data => {
 
-    if(!filtered.length){
-        results.innerHTML=`
-        <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#aaa;">
-            Produk tidak ditemukan
-        </div>`;
-        return;
-    }
+            hasilSearch = {}; // reset
 
-    results.innerHTML='';
+            if(!data.length){
+                results.innerHTML = `
+                <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#aaa;">
+                    Produk tidak ditemukan
+                </div>`;
+                return;
+            }
 
-    filtered.forEach(item=>{
-        results.innerHTML += `
-        <div class="product-card">
-            <div class="product-card-image">
-                ${getImage(item.produk.foto)}
-            </div>
+            results.innerHTML = '';
 
-            <div class="product-card-body">
-                <div>
-                    <div class="product-card-name">${item.produk.nama_produk}</div>
-                    <div style="font-size:12px;color:var(--text-gray);margin-bottom:2px;">
-                        ${item.warna} / ${item.size}
+            data.forEach(item => {
+
+                hasilSearch[item.id] = item;
+
+                results.innerHTML += `
+                <div class="product-card">
+                    <div class="product-card-image">
+                        ${getImage(item.produk?.foto)}
                     </div>
-                    <div class="product-card-price">
-                        Rp${Number(item.harga).toLocaleString('id-ID')}
-                    </div>
-                </div>
 
-                <button
-                    type="button"
-                    onclick="tambahProduk(${item.id})"
-                    class="btn-tambah"
-                    style="width:33%;margin-top:12px;">
-                    Tambah
-                </button>
-            </div>
-        </div>`;
-    });
+                    <div class="product-card-body">
+                        <div>
+                            <div class="product-card-name">${item.produk?.nama_produk ?? '-'}</div>
+                            <div style="font-size:12px;color:var(--text-gray);margin-bottom:2px;">
+                                ${item.warna} / ${item.size}
+                            </div>
+                            <div class="product-card-price">
+                                Rp${Number(item.harga).toLocaleString('id-ID')}
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onclick="tambahProduk(${item.id})"
+                            class="btn-tambah"
+                            style="width:33%;margin-top:12px;">
+                            Tambah
+                        </button>
+                    </div>
+                </div>`;
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            results.innerHTML = 'Terjadi error';
+        });
 }
 
+// ➕ TAMBAH KE CART
 function tambahProduk(id){
-    const item=varians.find(v=>v.id==id);
+    const item = hasilSearch[id];
+
+    if(!item){
+        console.error('Item tidak ditemukan');
+        return;
+    }
 
     if(cart[id]){
         cart[id].qty++;
     }else{
-        cart[id]={...item,qty:1};
+        cart[id] = {...item, qty:1};
     }
 
     renderCart();
 }
 
+// 🔄 UBAH QTY
 function ubahQty(id,delta){
-    cart[id].qty+=delta;
+    cart[id].qty += delta;
 
-    if(cart[id].qty<=0){
+    if(cart[id].qty <= 0){
         delete cart[id];
     }
 
     renderCart();
 }
 
+// 🧾 RENDER CART
 function renderCart(){
-    const container=document.getElementById('selectedProducts');
+    const container = document.getElementById('selectedProducts');
 
     if(!Object.keys(cart).length){
-        container.innerHTML=`
+        container.innerHTML = `
         <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#aaa;">
             Belum ada produk dipilih
         </div>`;
@@ -188,18 +206,18 @@ function renderCart(){
         return;
     }
 
-    container.innerHTML='';
+    container.innerHTML = '';
 
-    Object.values(cart).forEach(item=>{
+    Object.values(cart).forEach(item => {
         container.innerHTML += `
         <div class="product-card">
             <div class="product-card-image">
-                ${getImage(item.produk.foto)}
+                ${getImage(item.produk?.foto)}
             </div>
 
             <div class="product-card-body">
                 <div>
-                    <div class="product-card-name">${item.produk.nama_produk}</div>
+                    <div class="product-card-name">${item.produk?.nama_produk ?? '-'}</div>
                     <div style="font-size:12px;color:var(--text-gray);margin-bottom:2px;">
                         ${item.warna} / ${item.size}
                     </div>
@@ -223,19 +241,21 @@ function renderCart(){
     hitungTotal();
 }
 
+// 💰 HITUNG TOTAL
 function hitungTotal(){
-    let total=0;
+    let total = 0;
 
-    Object.values(cart).forEach(item=>{
-        total+=item.harga*item.qty;
+    Object.values(cart).forEach(item => {
+        total += item.harga * item.qty;
     });
 
-    document.getElementById('totalHarga').textContent=
-        'Rp'+total.toLocaleString('id-ID');
+    document.getElementById('totalHarga').textContent =
+        'Rp' + total.toLocaleString('id-ID');
 }
 
+// 💳 PILIH METODE
 function pilihMetode(metode,btn){
-    document.getElementById('metodePembayaran').value=metode;
+    document.getElementById('metodePembayaran').value = metode;
 
     document.querySelectorAll('.payment-btn').forEach(b=>{
         b.classList.remove('active');
@@ -244,6 +264,7 @@ function pilihMetode(metode,btn){
     btn.classList.add('active');
 }
 
+// 🚀 SUBMIT
 function submitKasir(){
     if(!Object.keys(cart).length){
         alert('Pilih produk dulu');
