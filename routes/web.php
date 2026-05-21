@@ -14,7 +14,15 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 // ── Halaman publik ───────────────────────────────────────────────────────────────
-Route::get('/', fn () => redirect()->route('pembeli.index'))->name('home');
+Route::get('/', function () {
+    if (Auth::check()) {
+        return match (Auth::user()->role) {
+            'pemilik', 'karyawan' => redirect()->route('karyawan.dashboard'),
+            default               => redirect()->route('pembeli.index'),
+        };
+    }
+    return redirect()->route('pembeli.index');
+})->name('home');
 
 // ── Auth routes (Breeze) ─────────────────────────────────────────────────────────
 require __DIR__ . '/auth.php';
@@ -111,8 +119,10 @@ Route::prefix('karyawan')
 // ════════════════════════════════════════════════════════════════════════════════
 
 // ── Produk publik (tanpa login) ───────────────────────────────────────────────
-Route::get('/toko',                [PembeliProdukController::class, 'index'])->name('pembeli.index');
-Route::get('/toko/produk/{slug}',  [PembeliProdukController::class, 'show'])->name('pembeli.produk.show');
+Route::middleware('pembeli.only')->group(function () {
+    Route::get('/toko',                [PembeliProdukController::class, 'index'])->name('pembeli.index');
+    Route::get('/toko/produk/{slug}',  [PembeliProdukController::class, 'show'])->name('pembeli.produk.show');
+});
 
 // ── Route yang butuh login ────────────────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {

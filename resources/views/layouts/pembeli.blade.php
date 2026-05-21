@@ -64,15 +64,15 @@
                     </a>
 
                     {{-- User dropdown --}}
-                    <div class="relative group">
-                        <button class="flex items-center gap-2 text-white hover:scale-105 transition">
+                    <div class="relative" id="userDropdownWrapper">
+                        <button id="userDropdownBtn" onclick="toggleDropdown()" class="flex items-center gap-2 text-white transition">
                             <div class="w-8 h-8 rounded-2xl bg-white/30 flex items-center justify-center text-white font-bold text-sm">
                                 {{ strtoupper(substr(Auth::user()->nama, 0, 1)) }}
                             </div>
                             <span class="hidden sm:block text-sm font-medium">{{ Auth::user()->nama }}</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
+                            <i class="fas fa-chevron-down text-xs" id="dropdownChevron"></i>
                         </button>
-                        <div class="absolute right-0 mt-1 w-44 bg-white rounded-2xl shadow-xl py-2 hidden group-hover:block z-50">
+                        <div id="userDropdownMenu" class="absolute right-0 mt-1 w-44 bg-white rounded-2xl shadow-xl py-2 hidden z-50">
                             <a href="{{ route('pembeli.pesanan.index') }}" class="block px-4 py-2 text-sm hover:bg-pink-50">
                                 <i class="fas fa-box mr-2 text-[#F3A1BC]"></i> Pesanan Saya
                             </a>
@@ -129,5 +129,26 @@
 </footer>
 
 @stack('scripts')
+
+<script>
+    // ── Dropdown toggle ──────────────────────────
+    function toggleDropdown() {
+        const menu    = document.getElementById('userDropdownMenu');
+        const chevron = document.getElementById('dropdownChevron');
+        const isHidden = menu.classList.contains('hidden');
+        menu.classList.toggle('hidden', !isHidden);
+        chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
+    }
+
+    // Tutup dropdown jika klik di luar area dropdown
+    document.addEventListener('click', function (e) {
+        const wrapper = document.getElementById('userDropdownWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            document.getElementById('userDropdownMenu')?.classList.add('hidden');
+            const chevron = document.getElementById('dropdownChevron');
+            if (chevron) chevron.style.transform = '';
+        }
+    });
+</script>
 </body>
 </html>

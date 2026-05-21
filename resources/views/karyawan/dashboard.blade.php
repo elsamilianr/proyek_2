@@ -9,7 +9,7 @@
 {{-- STATS CARDS --}}
 <div class="stats-grid mb-24">
     <div class="stat-card">
-        <div class="stat-icon">🎁</div>
+        <div class="stat-icon"><img src="{{ asset('images/penjualan-hari-ini.png') }}" style="width:48px;height:48px;object-fit:contain;" alt="Penjualan"></div>
         <div class="stat-label">Penjualan Hari Ini</div>
         <div>
             <span class="stat-value">{{ $penjualanHariIni }}</span>
@@ -17,13 +17,13 @@
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon">👜</div>
+        <div class="stat-icon"><img src="{{ asset('images/total-transaksi.png') }}" style="width:48px;height:48px;object-fit:contain;" alt="Transaksi"></div>
         <div class="stat-label">Total Transaksi</div>
         <div class="stat-value">Rp{{ number_format($totalTransaksi, 0, ',', '.') }}</div>
         <div class="stat-sub">hari ini</div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon">⚠️</div>
+        <div class="stat-icon"><img src="{{ asset('images/stok-menipis.png') }}" style="width:48px;height:48px;object-fit:contain;" alt="Stok Menipis"></div>
         <div class="stat-label">Stok Menipis</div>
         <div class="stat-value">{{ $stokMenipis }} <span class="stat-sub">produk</span></div>
     </div>

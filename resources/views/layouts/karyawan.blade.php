@@ -45,20 +45,14 @@
 
                 <li class="{{ request()->routeIs('karyawan.produk*') ? 'active' : '' }}">
                     <a href="{{ route('karyawan.produk.index') }}">
-                        <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                        </svg>
+                        <img src="{{ asset('images/produk.png') }}" class="sidebar-icon" style="width:22px;height:22px;object-fit:contain;" alt="Produk">
                         Produk
                     </a>
                 </li>
 
                 <li class="{{ request()->routeIs('karyawan.varian*') ? 'active' : '' }}">
                     <a href="{{ route('karyawan.varian.index') }}">
-                        <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 10h18M3 6h18M3 14h18M3 18h18" />
-                        </svg>
+                        <img src="{{ asset('images/stok.png') }}" class="sidebar-icon" style="width:22px;height:22px;object-fit:contain;" alt="Stok">
                         Stok
                     </a>
                 </li>

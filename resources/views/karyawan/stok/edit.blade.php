@@ -17,7 +17,7 @@
     </div>
     @endif
 
-    <form action="{{ route('karyawan.stok.update', $stok->id) }}" method="POST">
+    <form action="{{ route('karyawan.varian.update', $stok->id) }}" method="POST">
         @csrf
         @method('PUT')
 
@@ -46,8 +46,8 @@
 
         <div class="form-group">
             <label class="form-label">stok produk</label>
-            <input class="form-input" type="number" name="jumlah" placeholder="masukkan stok produk"
-                value="{{ old('jumlah', $stok->jumlah) }}" min="0" required>
+            <input class="form-input" type="number" name="stok" placeholder="masukkan stok produk"
+                value="{{ old('stok', $stok->stok) }}" min="0" required>
         </div>
 
         <div class="form-group">

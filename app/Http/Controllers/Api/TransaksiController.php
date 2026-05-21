@@ -10,7 +10,7 @@ class TransaksiController extends Controller
 {
     public function index()
     {
-        $transaksi = Transaksi::latest()->get();
+        $transaksi = Transaksi::with('details.varian.produk')->latest()->get();
 
         return response()->json([
             'success' => true,

@@ -3,46 +3,22 @@
 namespace App\Http\Controllers\Karyawan;
 
 use App\Http\Controllers\Controller;
-use App\Models\FotoProduk;
+use Illuminate\Http\Request;
 use App\Models\Produk;
 use App\Models\Varian;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProdukController extends Controller
 {
-    // FR-13: Daftar produk
-    public function index(Request $request)
+    public function index()
     {
-        $query = Produk::with('varians')->latest();
+        $produks = Produk::with('varians')
+            ->latest()
+            ->get();
 
-        if ($request->filled('search')) {
-            $query->where('nama_produk', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('is_aktif', $request->status === 'aktif');
-        }
-
-        $produks   = $query->paginate(10)->withQueryString();
-        $kategoris = Produk::select('kategori')->distinct()->pluck('kategori');
-
-        return view('karyawan.produk.index', compact('produks', 'kategoris'));
+        return view('karyawan.produk.index', compact('produks'));
     }
 
-    public function show(Produk $produk)
-    {
-        $produk->load(['varians', 'fotoProduk']);
-        return view('karyawan.produk.show', compact('produk'));
-    }
-
-    // FR-13.01: Tambah produk
     public function create()
     {
         return view('karyawan.produk.create');
@@ -50,101 +26,125 @@ class ProdukController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_produk'       => 'required|string|max:255',
-            'deskripsi'         => 'nullable|string',
-            'kategori'          => 'nullable|string|max:100',
-            'foto'              => 'nullable|image|max:2048',
-            'foto_tambahan.*'   => 'nullable|image|max:2048',
-            'varians'           => 'required|array|min:1',
-            'varians.*.warna'   => 'nullable|string|max:50',
-            'varians.*.size'    => 'nullable|string|max:20',
-            'varians.*.harga'   => 'required|numeric|min:0',
-            'varians.*.stok'    => 'required|integer|min:0',
-            'varians.*.sku'     => 'nullable|string|max:50|distinct',
+        $validated = $request->validate([
+            'nama_produk'          => 'required|string|max:255',
+            'kategori'             => 'nullable|string|max:255',
+            'deskripsi'            => 'nullable|string',
+            'foto'                 => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'varians'              => 'required|array|min:1',
+            'varians.*.harga'      => 'required|numeric|min:0',
+            'varians.*.stok'       => 'required|integer|min:0',
+            'varians.*.warna'      => 'nullable|string|max:50',
+            'varians.*.size'       => 'nullable|string|max:20',
+            'varians.*.sku'        => 'nullable|string|max:50|distinct',
         ]);
 
-        DB::transaction(function () use ($request) {
-            $fotoPath = null;
-            if ($request->hasFile('foto')) {
-                $fotoPath = $request->file('foto')->store('produk', 'public');
-            }
+        $fotoPath = null;
 
-            $produk = Produk::create([
-                'nama_produk' => $request->nama_produk,
-                'slug'        => Str::slug($request->nama_produk) . '-' . Str::random(5),
-                'deskripsi'   => $request->deskripsi,
-                'kategori'    => $request->kategori,
-                'foto'        => $fotoPath,
-                'is_aktif'    => true,
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('produk', 'public');
+        }
+
+        $produk = Produk::create([
+            'nama_produk' => $validated['nama_produk'],
+            'kategori'    => $validated['kategori'] ?? null,
+            'deskripsi'   => $validated['deskripsi'] ?? null,
+            'foto'        => $fotoPath,
+            'is_aktif'    => true,
+        ]);
+
+        // Simpan semua varian yang dikirim dari form create
+        foreach ($validated['varians'] as $varianData) {
+            $produk->varians()->create([
+                'warna' => $varianData['warna'] ?? null,
+                'size'  => $varianData['size']  ?? null,
+                'harga' => $varianData['harga'],
+                'stok'  => $varianData['stok'],
+                'sku'   => $varianData['sku']   ?? null,
             ]);
+        }
 
-            // Foto tambahan
-            if ($request->hasFile('foto_tambahan')) {
-                foreach ($request->file('foto_tambahan') as $foto) {
-                    FotoProduk::create([
-                        'produk_id' => $produk->id,
-                        'foto'      => $foto->store('produk', 'public'),
-                    ]);
-                }
-            }
-
-            // Simpan varian
-            foreach ($request->varians as $vd) {
-                Varian::create([
-                    'id_produk' => $produk->id,
-                    'warna'     => $vd['warna']  ?? null,
-                    'size'      => $vd['size']   ?? null,
-                    'harga'     => $vd['harga'],
-                    'stok'      => $vd['stok'],
-                    'sku'       => $vd['sku']    ?? null,
-                ]);
-            }
-        });
-
-        return redirect()->route('karyawan.produk.index')
-            ->with('success', 'Produk berhasil ditambahkan.');
+        return redirect()
+            ->route('karyawan.produk.edit', $produk->id)
+            ->with('success', 'Produk dan varian berhasil ditambahkan.');
     }
 
-    // FR-13.02: Edit produk
     public function edit(Produk $produk)
     {
-        $produk->load(['varians', 'fotoProduk']);
+        $produk->load('varians');
+
         return view('karyawan.produk.edit', compact('produk'));
     }
 
     public function update(Request $request, Produk $produk)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama_produk' => 'required|string|max:255',
+            'kategori'    => 'nullable|string|max:255',
             'deskripsi'   => 'nullable|string',
-            'kategori'    => 'nullable|string|max:100',
-            'foto'        => 'nullable|image|max:2048',
-            'is_aktif'    => 'nullable|boolean',
+            'foto'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
+        // update produk
+        $produk->update([
+            'nama_produk' => $validated['nama_produk'],
+            'kategori'    => $validated['kategori'] ?? null,
+            'deskripsi'   => $validated['deskripsi'] ?? null,
+        ]);
+
+        // update foto
         if ($request->hasFile('foto')) {
-            if ($produk->foto) Storage::disk('public')->delete($produk->foto);
-            $produk->foto = $request->file('foto')->store('produk', 'public');
+
+            if ($produk->foto && Storage::disk('public')->exists($produk->foto)) {
+                Storage::disk('public')->delete($produk->foto);
+            }
+
+            $fotoPath = $request->file('foto')->store('produk', 'public');
+
+            $produk->update([
+                'foto' => $fotoPath
+            ]);
         }
 
-        $produk->update([
-            'nama_produk' => $request->nama_produk,
-            'deskripsi'   => $request->deskripsi,
-            'kategori'    => $request->kategori,
-            'is_aktif'    => $request->boolean('is_aktif', true),
-        ]);
+        // update semua varian
+        if ($request->has('varians')) {
 
-        return redirect()->route('karyawan.produk.index')
-            ->with('success', 'Produk berhasil diperbarui.');
+            foreach ($request->varians as $id => $varianData) {
+
+                $varian = Varian::find($id);
+
+                if ($varian) {
+
+                    $varian->update([
+                        'warna' => $varianData['warna'] ?? null,
+                        'size'  => $varianData['size'] ?? null,
+                        'harga' => $varianData['harga'],
+                        'stok'  => $varianData['stok'],
+                    ]);
+                }
+            }
+        }
+
+        return redirect()
+            ->route('karyawan.produk.edit', $produk->id)
+            ->with('success', 'Produk dan semua varian berhasil diperbarui.');
     }
 
-    // FR-13.03: Hapus produk
     public function destroy(Produk $produk)
     {
+        // hapus foto
+        if ($produk->foto && Storage::disk('public')->exists($produk->foto)) {
+            Storage::disk('public')->delete($produk->foto);
+        }
+
+        // hapus semua varian
+        $produk->varians()->delete();
+
+        // hapus produk
         $produk->delete();
 
-        return redirect()->route('karyawan.produk.index')
+        return redirect()
+            ->route('karyawan.produk.index')
             ->with('success', 'Produk berhasil dihapus.');
     }
 }
