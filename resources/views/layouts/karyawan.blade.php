@@ -26,10 +26,10 @@
         </div>
     </nav>
 
-    <div class="main-content">
+    <div class="main-content" style="margin-left:230px;">
 
         {{-- SIDEBAR --}}
-        <aside class="sidebar" style="display:flex;flex-direction:column;">
+        <aside class="sidebar" style="display:flex;flex-direction:column;position:fixed;top:68px;left:0;bottom:0;overflow-y:auto;z-index:90;">
 
             <ul class="sidebar-nav">
 
@@ -126,15 +126,15 @@
                         cursor:pointer;
                     ">
                         <svg xmlns="http://www.w3.org/2000/svg"
-                             width="18"
-                             height="18"
-                             fill="none"
-                             viewBox="0 0 24 24"
-                             stroke="currentColor">
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/>
+                                width="18"
+                                height="18"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/>
                         </svg>
                         Logout
                     </button>
