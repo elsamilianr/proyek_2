@@ -14,7 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         // Daftarkan alias middleware role
         $middleware->alias([
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role'          => \App\Http\Middleware\RoleMiddleware::class,
+            'pembeli.only'  => \App\Http\Middleware\EnsurePembeliRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

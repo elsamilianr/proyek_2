@@ -75,25 +75,72 @@
                             <span class="font-medium text-sm">Warna</span>
                             <span class="toggle-icon text-2xl text-[#F3A1BC]">+</span>
                         </div>
+
                         <div class="accordion-content hidden mt-4 pl-1">
                             <div class="flex flex-wrap gap-3" id="color-swatches">
+
                                 @php
                                     $colorMap = [
-                                        'beige' => '#F5E8D3', 'black' => '#1F1F1F',
-                                        'pink'  => '#F3A1BC', 'navy'  => '#1E2A44',
-                                        'green' => '#8BC34A', 'white' => '#F0F0F0',
-                                        'cream' => '#FFF8E7', 'brown' => '#795548',
+
+                                        // Indonesia
+                                        'hitam' => '#1F1F1F',
+                                        'putih' => '#F5F5F5',
+                                        'hijau' => '#8BC34A',
+                                        'coklat' => '#795548',
+                                        'abu' => '#9E9E9E',
+                                        'abu-abu' => '#9E9E9E',
+                                        'merah' => '#F44336',
+                                        'biru' => '#2196F3',
+                                        'kuning' => '#FFEB3B',
+                                        'ungu' => '#9C27B0',
+                                        'oren' => '#FF9800',
+
+                                        // English
+                                        'black' => '#1F1F1F',
+                                        'white' => '#F5F5F5',
+                                        'green' => '#8BC34A',
+                                        'brown' => '#795548',
+                                        'grey' => '#9E9E9E',
+                                        'gray' => '#9E9E9E',
+                                        'red' => '#F44336',
+                                        'blue' => '#2196F3',
+                                        'yellow' => '#FFEB3B',
+                                        'purple' => '#9C27B0',
+                                        'orange' => '#FF9800',
+
+                                        // tambahan
+                                        'pink'  => '#F3A1BC',
+                                        'navy'  => '#1E2A44',
+                                        'cream' => '#FFF8E7',
+                                        'beige' => '#F5E8D3',
                                     ];
                                 @endphp
+
                                 @foreach($warnaList as $warna)
-                                    <button type="button"
+
+                                    @php
+                                        $warnaKey = strtolower(trim($warna));
+                                        $bgColor = $colorMap[$warnaKey] ?? '#CCCCCC';
+                                    @endphp
+
+                                    <button
+                                        type="button"
                                         onclick="toggleWarna('{{ $warna }}', this)"
                                         title="{{ ucfirst($warna) }}"
-                                        class="w-9 h-9 rounded-2xl shadow-inner border-4 transition {{ request('warna') === $warna ? 'border-[#F3A1BC]' : 'border-white' }}"
-                                        style="background-color: {{ $colorMap[$warna] ?? '#ccc' }}">
+                                        class="w-9 h-9 rounded-2xl shadow-inner border-4 transition flex items-center justify-center
+                                        {{ request('warna') === $warna ? 'border-[#F3A1BC]' : 'border-white' }}"
+                                        style="background-color: {{ $bgColor }}">
+
+                                        @if($bgColor === '#CCCCCC')
+                                            <span class="text-[8px] text-black font-bold">?</span>
+                                        @endif
+
                                     </button>
+
                                 @endforeach
+
                                 <input type="hidden" name="warna" id="selected-warna" value="{{ request('warna') }}">
+
                             </div>
                         </div>
                     </div>

@@ -42,7 +42,9 @@ class TransaksiController extends Controller
             ->take(10)
             ->get();
 
-        return response()->json($varians);
+        return response()->json($varians)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
+            ->header('Pragma', 'no-cache');
     }
 
     public function store(Request $request)

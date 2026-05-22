@@ -86,6 +86,8 @@
 <script>
 let cart = {};
 let hasilSearch = {};
+let searchTimeout  = null;   // untuk debounce
+let activeRequest  = null;   // AbortController request aktif
 
 function getImage(foto){
     if(foto){
@@ -98,9 +100,18 @@ function getImage(foto){
     </div>`;
 }
 
-// 🔍 SEARCH KE BACKEND
+// 🔍 SEARCH KE BACKEND (debounce 300ms + batalkan request lama)
 function cariProduk(keyword){
     const results = document.getElementById('searchResults');
+
+    // Batalkan debounce sebelumnya
+    clearTimeout(searchTimeout);
+
+    // Batalkan request HTTP yang sedang berjalan
+    if(activeRequest){
+        activeRequest.abort();
+        activeRequest = null;
+    }
 
     if(!keyword){
         results.innerHTML = `
@@ -110,11 +121,24 @@ function cariProduk(keyword){
         return;
     }
 
-    fetch(`/karyawan/transaksi/cari-varian?q=${keyword}`)
+    // Tampilkan loading sementara menunggu debounce selesai
+    results.innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#aaa;">
+        Mencari...
+    </div>`;
+
+    // Tunda 300ms — jika ada ketukan lagi, timeout ini dibatalkan
+    searchTimeout = setTimeout(() => {
+        activeRequest = new AbortController();
+
+        fetch(
+            `/karyawan/transaksi/cari-varian?q=${encodeURIComponent(keyword)}&_=${Date.now()}`,
+            { cache: 'no-store', signal: activeRequest.signal }
+        )
         .then(res => res.json())
         .then(data => {
-
-            hasilSearch = {}; // reset
+            activeRequest = null;
+            hasilSearch   = {}; // reset cache lokal
 
             if(!data.length){
                 results.innerHTML = `
@@ -127,7 +151,6 @@ function cariProduk(keyword){
             results.innerHTML = '';
 
             data.forEach(item => {
-
                 hasilSearch[item.id] = item;
 
                 results.innerHTML += `
@@ -136,11 +159,11 @@ function cariProduk(keyword){
                         ${getImage(item.produk?.foto)}
                     </div>
 
-                    <div class="product-card-body">
+                    <div class="product-card-body" style="flex-direction:column;align-items:stretch;gap:10px;">
                         <div>
                             <div class="product-card-name">${item.produk?.nama_produk ?? '-'}</div>
-                            <div style="font-size:12px;color:var(--text-gray);margin-bottom:2px;">
-                                ${item.warna} / ${item.size}
+                            <div style="font-size:12px;color:var(--text-gray);margin-bottom:4px;">
+                                ${item.warna || '-'} / ${item.size || '-'}
                             </div>
                             <div class="product-card-price">
                                 Rp${Number(item.harga).toLocaleString('id-ID')}
@@ -151,17 +174,22 @@ function cariProduk(keyword){
                             type="button"
                             onclick="tambahProduk(${item.id})"
                             class="btn-tambah"
-                            style="width:33%;margin-top:12px;">
-                            Tambah
+                            style="width:100%;justify-content:center;">
+                            + Tambah
                         </button>
                     </div>
                 </div>`;
             });
         })
         .catch(err => {
+            if(err.name === 'AbortError') return; // request dibatalkan — abaikan
             console.error(err);
-            results.innerHTML = 'Terjadi error';
+            results.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#f87171;">
+                Terjadi error, coba lagi.
+            </div>`;
         });
+    }, 300);
 }
 
 // ➕ TAMBAH KE CART
