@@ -65,7 +65,7 @@
 
                     {{-- User dropdown --}}
                     <div class="relative" id="userDropdownWrapper">
-                        <button id="userDropdownBtn" onclick="toggleDropdown()" class="flex items-center gap-2 text-white transition">
+                        <button type="button" id="userDropdownBtn" onclick="toggleDropdown()" class="flex items-center gap-2 text-white transition">
                             <div class="w-8 h-8 rounded-2xl bg-white/30 flex items-center justify-center text-white font-bold text-sm">
                                 {{ strtoupper(substr(Auth::user()->nama, 0, 1)) }}
                             </div>
