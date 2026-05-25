@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role'          => \App\Http\Middleware\RoleMiddleware::class,
             'pembeli.only'  => \App\Http\Middleware\EnsurePembeliRole::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+        'midtrans/notification',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

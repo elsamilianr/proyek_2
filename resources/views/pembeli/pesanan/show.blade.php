@@ -138,7 +138,7 @@
                 <i class="fas fa-exclamation-circle text-yellow-500 text-3xl mb-3 block"></i>
                 <p class="font-semibold text-yellow-700 mb-1">Segera Lakukan Pembayaran</p>
                 <p class="text-sm text-yellow-600 mb-4">Upload bukti transfer/pembayaran untuk memproses pesananmu.</p>
-                <a href="{{ route('pembeli.pembayaran.form', $pesanan->id) }}"
+                <a href="{{ route('pembeli.pesanan.pembayaran', $pesanan->id) }}"
                     class="bg-black text-white px-6 py-3 rounded-3xl font-medium hover:bg-gray-800 transition text-sm">
                     <i class="fas fa-upload mr-2"></i> Upload Bukti Bayar
                 </a>

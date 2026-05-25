@@ -24,7 +24,6 @@ class PesananController extends Controller
         }
 
         $promos = Promo::aktif()->get();
-
         $cartCount = $keranjang->details->sum('jumlah');
 
         return view('pembeli.pesanan.checkout', compact(
@@ -38,7 +37,8 @@ class PesananController extends Controller
     {
         $request->validate([
             'catatan' => 'nullable|string|max:500',
-            'metode'  => 'required|in:transfer,qris,cash',
+            // ↓ tambahkan 'midtrans' ke enum metode
+            'metode'  => 'required|in:transfer,qris,cash,midtrans',
         ]);
 
         $keranjang = Keranjang::with(['details.varian'])
@@ -62,33 +62,46 @@ class PesananController extends Controller
         );
 
         if ($request->filled('catatan')) {
-            $pesanan->update([
-                'catatan' => $request->catatan
-            ]);
+            $pesanan->update(['catatan' => $request->catatan]);
         }
 
         $keranjang->clearKeranjang();
 
-        // BAYAR DI TOKO
+        // ── BAYAR DI TOKO ───────────────────────────────────────────────────────
         if ($request->metode === 'cash') {
-            $pesanan->update([
-                'status_pesanan' => 'diproses'
-            ]);
+            $pesanan->update(['status_pesanan' => 'diproses']);
 
             return redirect()
                 ->route('pembeli.pesanan.show', $pesanan->id)
-                ->with(
-                    'success',
-                    'Pesanan berhasil dibuat. Silakan ambil dan bayar langsung di toko.'
-                );
+                ->with('success', 'Pesanan berhasil dibuat. Silakan ambil dan bayar langsung di toko.');
         }
 
+        // ── MIDTRANS (Bayar Online) ─────────────────────────────────────────────
+        if ($request->metode === 'midtrans') {
+            // Buat record pembayaran dengan metode midtrans
+            Pembayaran::create([
+                'id_pesanan'        => $pesanan->id,
+                'metode'            => 'midtrans',
+                'status_pembayaran' => 'pending',
+                'jumlah_bayar'      => $pesanan->total_harga,
+            ]);
+
+            // Jika request dari AJAX (JS fetch), kembalikan JSON
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['pesanan_id' => $pesanan->id]);
+            }
+
+            // Jika request biasa, redirect ke halaman pesanan
+            // (Snap token akan diambil via JS di halaman checkout)
+            return redirect()
+                ->route('pembeli.pesanan.show', $pesanan->id)
+                ->with('info', 'Pesanan dibuat. Silakan selesaikan pembayaran.');
+        }
+
+        // ── TRANSFER / QRIS (upload bukti) ─────────────────────────────────────
         return redirect()
             ->route('pembeli.pesanan.pembayaran', $pesanan->id)
-            ->with(
-                'success',
-                "Pesanan {$pesanan->kode_pesanan} berhasil dibuat!"
-            );
+            ->with('success', "Pesanan {$pesanan->kode_pesanan} berhasil dibuat!");
     }
 
     public function index()
@@ -151,10 +164,7 @@ class PesananController extends Controller
 
         return redirect()
             ->route('pembeli.pesanan.show', $pesanan->id)
-            ->with(
-                'success',
-                'Bukti pembayaran berhasil dikirim! Menunggu verifikasi.'
-            );
+            ->with('success', 'Bukti pembayaran berhasil dikirim! Menunggu verifikasi.');
     }
 
     private function cartCount(): int
@@ -163,8 +173,6 @@ class PesananController extends Controller
             ->with('details')
             ->first();
 
-        return $keranjang
-            ? $keranjang->details->sum('jumlah')
-            : 0;
+        return $keranjang ? $keranjang->details->sum('jumlah') : 0;
     }
 }
