@@ -7,20 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * CD: Pembayaran
  * Atribut: id_pembayaran, id_pesanan, metode, status_pembayaran,
- *          bukti_pembayaran, tanggal_bayar
- * Method : prosesPembayaran(), uploadBukti(), konfirmasiPembayaran()
+ *          bukti_pembayaran, tanggal_bayar, snap_token, midtrans_order_id
+ * Method : prosesPembayaran(), uploadBukti(), konfirmasiPembayaran(),
+ *          prosesMidtrans()
  */
 class Pembayaran extends Model
 {
     protected $fillable = [
-        'id_pesanan',         // ← sesuai CD
+        'id_pesanan',
         'diverifikasi_oleh',
-        'metode',             // ← sesuai CD
-        'status_pembayaran',  // ← sesuai CD: status_pembayaran
-        'bukti_pembayaran',   // ← sesuai CD
-        'tanggal_bayar',      // ← sesuai CD: tanggal_bayar
+        'metode',
+        'status_pembayaran',
+        'bukti_pembayaran',
         'jumlah_bayar',
+        'tanggal_bayar',
         'catatan',
+        'snap_token',          // ← Midtrans: token untuk Snap popup
+        'midtrans_order_id',   // ← Midtrans: order ID yang dikirim ke Midtrans
     ];
 
     protected $casts = [
@@ -35,10 +38,10 @@ class Pembayaran extends Model
     public function prosesPembayaran(string $metode, float $jumlah): void
     {
         $this->update([
-            'metode'           => $metode,
-            'jumlah_bayar'     => $jumlah,
-            'status_pembayaran'=> 'pending',
-            'tanggal_bayar'    => now(),
+            'metode'            => $metode,
+            'jumlah_bayar'      => $jumlah,
+            'status_pembayaran' => 'pending',
+            'tanggal_bayar'     => now(),
         ]);
     }
 
@@ -46,10 +49,24 @@ class Pembayaran extends Model
     public function uploadBukti(string $path): void
     {
         $this->update([
-            'bukti_pembayaran' => $path,
-            'status_pembayaran'=> 'menunggu_verifikasi',
+            'bukti_pembayaran'  => $path,
+            'status_pembayaran' => 'menunggu_verifikasi',
         ]);
         $this->pesanan->ubahStatus('menunggu_verifikasi');
+    }
+
+    // ─── MIDTRANS: prosesMidtrans() ──────────────────────────────────────────────
+    /**
+     * Simpan snap_token setelah berhasil membuat transaksi Midtrans.
+     */
+    public function prosesMidtrans(string $snapToken, string $midtransOrderId): void
+    {
+        $this->update([
+            'snap_token'        => $snapToken,
+            'midtrans_order_id' => $midtransOrderId,
+            'status_pembayaran' => 'pending',
+            'tanggal_bayar'     => now(),
+        ]);
     }
 
     // ─── CD: konfirmasiPembayaran() ──────────────────────────────────────────────
@@ -72,11 +89,11 @@ class Pembayaran extends Model
     public function getLabelStatusAttribute(): string
     {
         return match ($this->status_pembayaran) {
-            'pending'              => 'Menunggu Verifikasi',
-            'menunggu_verifikasi'  => 'Menunggu Verifikasi',
-            'terverifikasi'        => 'Terverifikasi',
-            'ditolak'              => 'Ditolak',
-            default                => ucfirst($this->status_pembayaran),
+            'pending'             => 'Menunggu Pembayaran',
+            'menunggu_verifikasi' => 'Menunggu Verifikasi',
+            'terverifikasi'       => 'Terverifikasi',
+            'ditolak'             => 'Ditolak',
+            default               => ucfirst($this->status_pembayaran),
         };
     }
 }

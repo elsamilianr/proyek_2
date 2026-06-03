@@ -7,7 +7,7 @@
 
     <h1 class="text-3xl sm:text-4xl font-bold text-white mb-8">Checkout</h1>
 
-    <form action="{{ route('pembeli.pesanan.buat') }}" method="POST">
+    <form id="formCheckout" action="{{ route('pembeli.pesanan.buat') }}" method="POST">
         @csrf
 
         <div class="flex flex-col lg:flex-row gap-8">
@@ -111,6 +111,15 @@
                             </div>
                         </label>
 
+                        {{-- MIDTRANS --}}
+                        <label class="flex items-center gap-3 border border-pink-300 rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
+                            <input type="radio" name="metode" value="midtrans" class="accent-[#F3A1BC]">
+                            <div>
+                                <p class="font-medium text-sm">💳 Bayar Online (Midtrans)</p>
+                                <p class="text-xs text-gray-500">GoPay, OVO, Transfer Bank, Kartu Kredit & lainnya</p>
+                            </div>
+                        </label>
+
                     </div>
                 </div>
 
@@ -120,6 +129,7 @@
 
                     <textarea
                         name="catatan"
+                        id="catatan"
                         rows="3"
                         placeholder="Tulis catatan untuk penjual (opsional)..."
                         class="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 resize-none"
@@ -171,7 +181,7 @@
                         @endif
                     </div>
 
-                    <button type="submit"
+                    <button type="button" id="btnBuatPesanan"
                         class="w-full bg-black text-white py-4 rounded-3xl font-semibold text-base hover:bg-gray-800 transition">
                         <i class="fas fa-check-circle mr-2"></i>
                         Buat Pesanan
@@ -186,4 +196,95 @@
 
         </div>
     </form>
+
+    {{-- Midtrans Snap Script --}}
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js"
+            data-client-key="{{ config('services.midtrans.client_key') }}"></script>
+
+    <script>
+    document.getElementById('btnBuatPesanan').addEventListener('click', async function () {
+        const metode = document.querySelector('input[name="metode"]:checked')?.value;
+
+        if (!metode) {
+            alert('Pilih metode pembayaran terlebih dahulu.');
+            return;
+        }
+
+        // Jika bukan Midtrans, submit form biasa
+        if (metode !== 'midtrans') {
+            document.getElementById('formCheckout').submit();
+            return;
+        }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
+
+        try {
+            // Langkah 1: Buat pesanan via AJAX dengan header XMLHttpRequest
+            // agar Laravel mendeteksi sebagai AJAX dan return JSON
+            const formData = new FormData(document.getElementById('formCheckout'));
+
+            const resPesanan = await fetch('{{ route("pembeli.pesanan.buat") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+
+            if (!resPesanan.ok) {
+                const err = await resPesanan.json();
+                throw new Error(err.message ?? 'Gagal membuat pesanan.');
+            }
+
+            const pesananData = await resPesanan.json();
+            const pesananId   = pesananData.pesanan_id;
+            console.log('Response pesanan:', pesananData);
+            console.log('Pesanan ID:', pesananId);  
+
+            // Langkah 2: Ambil Snap Token
+            const resToken = await fetch(`/midtrans/token/${pesananId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+            });
+
+            const tokenData = await resToken.json();
+
+            if (tokenData.error) {
+                throw new Error(tokenData.error);
+            }
+
+            // Langkah 3: Buka popup Snap Midtrans
+            snap.pay(tokenData.snap_token, {
+                onSuccess: function () {
+                    window.location.href = `/pesanan/${pesananId}`;
+                },
+                onPending: function () {
+                    window.location.href = `/pesanan/${pesananId}`;
+                },
+                onError: function () {
+                    alert('Pembayaran gagal. Silakan coba lagi.');
+                    window.location.href = `/pesanan/${pesananId}`;
+                },
+                onClose: function () {
+                    window.location.href = `/pesanan/${pesananId}`;
+                },
+            });
+
+        } catch (err) {
+            alert('Terjadi kesalahan: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Buat Pesanan';
+        }
+    });
+    </script>
+
 </x-pembeli-layout>

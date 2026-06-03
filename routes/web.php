@@ -10,6 +10,7 @@ use App\Http\Controllers\Karyawan\ProdukController;
 use App\Http\Controllers\Karyawan\RiwayatController;
 use App\Http\Controllers\Karyawan\TransaksiController;
 use App\Http\Controllers\Karyawan\VarianController;
+use App\Http\Controllers\Pembeli\MidtransController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -134,6 +135,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/keranjang/{detail}',  [KeranjangController::class, 'hapus']) ->name('pembeli.keranjang.hapus');
 
     // Pesanan — PesananController
+    Route::post('/midtrans/token/{pesanan}', [MidtransController::class, 'getSnapToken']) ->name('midtrans.token');
     Route::get ('/checkout',          [PembeliPesananController::class, 'checkout'])      ->name('pembeli.checkout');
     Route::post('/pesanan',           [PembeliPesananController::class, 'store'])          ->name('pembeli.pesanan.buat');
     Route::get ('/pesanan',           [PembeliPesananController::class, 'index'])          ->name('pembeli.pesanan.index');
@@ -143,3 +145,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get ('/pembayaran/{pesanan}', [PembeliPesananController::class, 'formPembayaran'])->name('pembeli.pesanan.pembayaran');
     Route::post('/pembayaran/{pesanan}', [PembeliPesananController::class, 'uploadBukti'])   ->name('pembeli.pembayaran.upload');
 });
+
+// Webhook Midtrans — tidak pakai auth
+Route::post('/midtrans/notification', [MidtransController::class, 'handleNotification'])
+    ->name('midtrans.notification');
