@@ -643,6 +643,7 @@
         },
         {
             "name": "guzzlehttp/guzzle",
+<<<<<<< HEAD
             "version": "7.11.0",
             "source": {
                 "type": "git",
@@ -653,6 +654,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/guzzle/zipball/c987f8ce84b8434fa430795eca0f3430663da72b",
                 "reference": "c987f8ce84b8434fa430795eca0f3430663da72b",
+=======
+            "version": "7.10.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/guzzle/guzzle.git",
+                "reference": "7c8d84b39e680315f687e8662a9d6fb0865c5148"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/7c8d84b39e680315f687e8662a9d6fb0865c5148",
+                "reference": "7c8d84b39e680315f687e8662a9d6fb0865c5148",
+>>>>>>> 8a88a589c7aeea6df13ad77c034618e7f1649db0
                 "shasum": ""
             },
             "require": {
@@ -751,7 +764,11 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/guzzle/issues",
+<<<<<<< HEAD
                 "source": "https://github.com/guzzle/guzzle/tree/7.11.0"
+=======
+                "source": "https://github.com/guzzle/guzzle/tree/7.10.5"
+>>>>>>> 8a88a589c7aeea6df13ad77c034618e7f1649db0
             },
             "funding": [
                 {
@@ -767,7 +784,11 @@
                     "type": "tidelift"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-06-02T12:40:51+00:00"
+=======
+            "time": "2026-05-27T11:53:46+00:00"
+>>>>>>> 8a88a589c7aeea6df13ad77c034618e7f1649db0
         },
         {
             "name": "guzzlehttp/promises",
@@ -855,6 +876,7 @@
         },
         {
             "name": "guzzlehttp/psr7",
+<<<<<<< HEAD
             "version": "2.11.0",
             "source": {
                 "type": "git",
@@ -865,6 +887,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/guzzle/psr7/zipball/bbb5e61349fa5cb822b3e87842b951088b76b81f",
                 "reference": "bbb5e61349fa5cb822b3e87842b951088b76b81f",
+=======
+            "version": "2.10.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/guzzle/psr7.git",
+                "reference": "d2a1a094e396da8957e797489fddaf860c340cfc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/d2a1a094e396da8957e797489fddaf860c340cfc",
+                "reference": "d2a1a094e396da8957e797489fddaf860c340cfc",
+>>>>>>> 8a88a589c7aeea6df13ad77c034618e7f1649db0
                 "shasum": ""
             },
             "require": {
@@ -954,7 +988,11 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
+<<<<<<< HEAD
                 "source": "https://github.com/guzzle/psr7/tree/2.11.0"
+=======
+                "source": "https://github.com/guzzle/psr7/tree/2.10.4"
+>>>>>>> 8a88a589c7aeea6df13ad77c034618e7f1649db0
             },
             "funding": [
                 {
@@ -970,7 +1008,11 @@
                     "type": "tidelift"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-06-02T12:30:48+00:00"
+=======
+            "time": "2026-05-29T12:59:07+00:00"
+>>>>>>> 8a88a589c7aeea6df13ad77c034618e7f1649db0
         },
         {
             "name": "guzzlehttp/uri-template",
@@ -9003,5 +9045,5 @@
         "php": "^8.3"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
