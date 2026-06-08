@@ -26,11 +26,15 @@
                         $subtotalTotal += $subtotal;
                         $foto = $detail->varian->produk->foto
                             ? Storage::url($detail->varian->produk->foto)
-                            : 'https://picsum.photos/id/' . (($detail->varian->produk->id % 50) + 100) . '/120/120';
+                            : null;
                     @endphp
                     <div class="bg-white/90 rounded-3xl p-5 flex gap-4 shadow-sm">
-                        <img src="{{ $foto }}" alt="{{ $detail->varian->produk->nama_produk }}"
-                            class="w-20 h-20 object-cover rounded-2xl flex-shrink-0">
+                        @if($foto)
+                            <img src="{{ $foto }}" alt="{{ $detail->varian->produk->nama_produk }}"
+                                class="w-20 h-20 object-cover rounded-2xl flex-shrink-0">
+                        @else
+                            <div class="w-20 h-20 rounded-2xl bg-pink-50 flex items-center justify-center text-3xl flex-shrink-0">📦</div>
+                        @endif
 
                         <div class="flex-1 min-w-0">
                             <h3 class="font-semibold text-base">{{ $detail->varian->produk->nama_produk }}</h3>
@@ -50,7 +54,8 @@
                                 <button type="button" onclick="changeQtyItem(this, -1)"
                                     class="w-8 h-8 border rounded-xl flex items-center justify-center hover:bg-gray-100 font-bold">−</button>
                                 <input type="number" name="jumlah" value="{{ $detail->jumlah }}" min="1"
-                                    class="w-12 text-center border rounded-xl py-1 text-sm focus:outline-none focus:ring-1 focus:ring-pink-300"
+                                    class="w-12 text-center border rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-pink-300 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                                    style="height:32px; line-height:32px; padding:0; vertical-align:middle;"
                                     onchange="this.form.submit()">
                                 <button type="button" onclick="changeQtyItem(this, 1)"
                                     class="w-8 h-8 border rounded-xl flex items-center justify-center hover:bg-gray-100 font-bold">+</button>

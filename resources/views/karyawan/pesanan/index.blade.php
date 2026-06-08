@@ -72,7 +72,7 @@
                          alt="{{ $detail->varian->produk->nama_produk }}"
                          style="width:100%;height:100%;object-fit:cover;border-radius:12px;">
                 @else
-                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--pink-light);border-radius:12px;">🧥</div>
+                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--pink-light);border-radius:12px;">📦</div>
                 @endif
             </div>
             @endforeach

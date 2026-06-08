@@ -113,7 +113,7 @@
                         @if($foto)
                             <img src="{{ $foto }}" class="w-16 h-16 rounded-2xl object-cover">
                         @else
-                            <div class="w-16 h-16 rounded-2xl bg-pink-50 flex items-center justify-center text-2xl">🧥</div>
+                            <div class="w-16 h-16 rounded-2xl bg-pink-50 flex items-center justify-center text-2xl">📦</div>
                         @endif
                         <div class="flex-1">
                             <p class="font-medium text-sm">{{ $detail->varian?->produk?->nama_produk ?? '-' }}</p>
@@ -180,11 +180,11 @@
             </div>
         @endif
 
-        {{-- Form upload bukti: muncul jika metode bukan cash dan pesanan belum selesai/dibatalkan --}}
+        {{-- Form upload bukti: muncul jika metode bukan cash, belum selesai/dibatalkan, dan belum diproses --}}
         @if(
             $pesanan->pembayaran &&
             $pesanan->pembayaran->metode !== 'cash' &&
-            !in_array($pesanan->status_pesanan, ['selesai', 'dibatalkan'])
+            !in_array($pesanan->status_pesanan, ['diproses', 'selesai', 'dibatalkan'])
         )
             <div id="upload-bukti" class="bg-white/90 rounded-3xl p-6 shadow-sm scroll-mt-8">
                 <h2 class="text-lg font-bold mb-4">

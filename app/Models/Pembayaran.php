@@ -50,9 +50,10 @@ class Pembayaran extends Model
     {
         $this->update([
             'bukti_pembayaran'  => $path,
-            'status_pembayaran' => 'menunggu_verifikasi',
+            'status_pembayaran' => 'terverifikasi',
+            'tanggal_bayar'     => now(),
         ]);
-        $this->pesanan->ubahStatus('menunggu_verifikasi');
+        $this->pesanan->ubahStatus('diproses');
     }
 
     // ─── MIDTRANS: prosesMidtrans() ──────────────────────────────────────────────

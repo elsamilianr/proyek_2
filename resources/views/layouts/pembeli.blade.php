@@ -50,7 +50,7 @@
 
             {{-- Tengah: Logo --}}
             <a href="{{ route('pembeli.index') }}" class="flex items-center gap-2">
-                <div class="w-9 h-9 bg-white rounded-2xl flex items-center justify-center text-[#F3A1BC] text-2xl font-bold">K</div>
+                <img src="{{ asset('images/logo.jpeg') }}" alt="Logo" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
                 <h1 class="text-2xl font-bold tracking-tighter text-white">KIKI HIJAB</h1>
             </a>
 

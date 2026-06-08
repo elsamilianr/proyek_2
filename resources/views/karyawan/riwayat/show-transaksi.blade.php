@@ -280,7 +280,7 @@
                                          alt="{{ $detail->varian->produk->nama_produk }}"
                                          class="product-thumb">
                                 @else
-                                    <div class="product-thumb">🧥</div>
+                                    <div class="product-thumb">📦</div>
                                 @endif
                                 <span style="font-weight:700;">
                                     {{ $detail->varian?->produk?->nama_produk ?? 'Produk' }}

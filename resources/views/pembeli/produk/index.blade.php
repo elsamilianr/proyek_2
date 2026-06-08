@@ -221,10 +221,14 @@
                             $stokTotal = $item->varians->sum('stok');
                             $foto = $item->foto
                                 ? Storage::url($item->foto)
-                                : 'https://picsum.photos/id/' . (($item->id % 50) + 100) . '/320/400';
+                                : null;
                         @endphp
                         <a href="{{ route('pembeli.produk.show', $item->slug) }}" class="product-card bg-white rounded-3xl overflow-hidden shadow-sm block">
-                            <img src="{{ $foto }}" alt="{{ $item->nama_produk }}" class="w-full h-64 object-cover">
+                            @if($foto)
+                                <img src="{{ $foto }}" alt="{{ $item->nama_produk }}" class="w-full h-64 object-cover">
+                            @else
+                                <div class="w-full h-64 bg-pink-50 flex items-center justify-center text-6xl">📦</div>
+                            @endif
                             <div class="p-4 sm:p-5">
                                 <p class="text-xs text-gray-500 capitalize">{{ $item->kategori }}</p>
                                 <h3 class="font-semibold text-base mt-1 line-clamp-2">{{ $item->nama_produk }}</h3>

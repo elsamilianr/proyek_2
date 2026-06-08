@@ -38,7 +38,7 @@
                 <td>{{ $varian->stok }}</td>
                 <td>{{ $varian->updated_at ? \Carbon\Carbon::parse($varian->updated_at)->format('d-m-Y') : '-' }}</td>
                 <td>
-                    <button onclick="openEditModal({{ $varian->id }}, {{ $varian->stok }})" class="btn-edit">Edit</button>
+                    <button onclick="openEditModal({{ $varian->id }}, '{{ addslashes($varian->produk->nama_produk ?? '-') }}', '{{ addslashes(implode(' / ', array_filter([$varian->warna ?? null, $varian->size ?? null]))) }}', {{ $varian->stok }})" class="btn-edit">Edit</button>
                 </td>
             </tr>
             @empty
@@ -50,16 +50,37 @@
 
 {{-- Modal Tambah Stok --}}
 <div id="editModal" class="modal-overlay" style="display:none;" onclick="closeModal(event)">
-    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:360px;">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:340px;">
         <div class="modal-title">Tambah Stok</div>
+
+        {{-- Info produk --}}
+        <div style="background:var(--white); border-radius:12px; padding:12px 16px; margin-bottom:20px;">
+            <div id="modalNamaProduk" style="font-weight:700; font-size:14px; color:var(--text-dark);"></div>
+            <div id="modalDetailProduk" style="font-size:12px; color:var(--text-gray); margin-top:2px;"></div>
+        </div>
+
         <form id="editForm" method="POST">
             @csrf
             @method('PATCH')
             <div class="form-group">
                 <label class="form-label">Jumlah Tambah Stok</label>
-                <input class="form-input" type="number" name="jumlah" min="1" value="1" required>
+                <input id="stokInput" class="form-input" type="number" name="jumlah" min="1" value="1" required
+                    style="text-align:left; appearance:none; -moz-appearance:textfield;
+                           background:var(--white); height:52px; line-height:52px;
+                           padding:0 22px; font-size:18px; font-weight:700; color:var(--text-dark);
+                           border:2px solid var(--pink-border);">
             </div>
-            <button type="submit" class="form-btn" style="margin-top:16px;">Simpan</button>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+                <button type="button" onclick="closeModal()"
+                    style="flex:1; background:var(--white); border:1.5px solid var(--pink-card);
+                           border-radius:50px; padding:12px; font-family:'Nunito',sans-serif;
+                           font-weight:700; font-size:14px; cursor:pointer; color:var(--text-gray);">
+                    Batal
+                </button>
+                <button type="submit" class="form-btn" style="flex:2; margin-top:0; padding:12px;">
+                    Simpan
+                </button>
+            </div>
         </form>
     </div>
 </div>
@@ -74,13 +95,18 @@ function filterStok(val) {
     });
 }
 
-function openEditModal(varianId, stokSaat) {
+function openEditModal(varianId, nama, detail, stok) {
     document.getElementById('editForm').action = '/karyawan/varian/' + varianId + '/tambah-stok';
+    document.getElementById('stokInput').value = 1;
+    document.getElementById('modalNamaProduk').textContent = nama;
+    document.getElementById('modalDetailProduk').textContent = detail + ' · Stok saat ini: ' + stok;
     document.getElementById('editModal').style.display = 'flex';
 }
 
 function closeModal(e) {
-    document.getElementById('editModal').style.display = 'none';
+    if (!e || e.target === document.getElementById('editModal')) {
+        document.getElementById('editModal').style.display = 'none';
+    }
 }
 </script>
 @endpush

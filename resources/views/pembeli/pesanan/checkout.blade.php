@@ -29,11 +29,15 @@
 
                                 $foto = $detail->varian->produk->foto
                                     ? Storage::url($detail->varian->produk->foto)
-                                    : 'https://picsum.photos/id/' . (($detail->varian->produk->id % 50) + 100) . '/80/80';
+                                    : null;
                             @endphp
 
                             <div class="flex gap-4 items-center">
-                                <img src="{{ $foto }}" class="w-16 h-16 rounded-2xl object-cover">
+                                @if($foto)
+                                    <img src="{{ $foto }}" class="w-16 h-16 rounded-2xl object-cover">
+                                @else
+                                    <div class="w-16 h-16 rounded-2xl bg-pink-50 flex items-center justify-center text-2xl">📦</div>
+                                @endif
 
                                 <div class="flex-1">
                                     <p class="font-medium text-sm">
@@ -96,28 +100,28 @@
                         </label>
 
                         {{-- QRIS via Midtrans --}}
-                        <label class="flex items-center gap-3 border border-pink-300 rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
+                        <label class="flex items-center gap-3 border rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
                             <input type="radio" name="metode" value="midtrans" data-midtrans-channel="qris" class="accent-[#F3A1BC]">
                             <div>
-                                <p class="font-medium text-sm">📱 QRIS</p>
+                                <p class="font-medium text-sm">QRIS</p>
                                 <p class="text-xs text-gray-500">Scan & bayar dengan semua dompet digital</p>
                             </div>
                         </label>
 
                         {{-- GoPay via Midtrans --}}
-                        <label class="flex items-center gap-3 border border-pink-300 rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
+                        <label class="flex items-center gap-3 border rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
                             <input type="radio" name="metode" value="midtrans" data-midtrans-channel="gopay" class="accent-[#F3A1BC]">
                             <div>
-                                <p class="font-medium text-sm">💚 GoPay</p>
+                                <p class="font-medium text-sm">GoPay</p>
                                 <p class="text-xs text-gray-500">Bayar menggunakan saldo GoPay</p>
                             </div>
                         </label>
 
                         {{-- Kartu Kredit/Debit via Midtrans --}}
-                        <label class="flex items-center gap-3 border border-pink-300 rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
+                        <label class="flex items-center gap-3 border rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
                             <input type="radio" name="metode" value="midtrans" data-midtrans-channel="credit_card" class="accent-[#F3A1BC]">
                             <div>
-                                <p class="font-medium text-sm">💳 Kartu Kredit / Debit</p>
+                                <p class="font-medium text-sm">Kartu Kredit / Debit</p>
                                 <p class="text-xs text-gray-500">Visa, Mastercard, dan kartu bank lainnya</p>
                             </div>
                         </label>

@@ -26,7 +26,7 @@
                         @if($item['gambar'] ?? null)
                             <img src="{{ asset('storage/' . $item['gambar']) }}" alt="{{ $item['nama'] }}">
                         @else
-                            <div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:30px;">🧥</div>
+                            <div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:30px;">📦</div>
                         @endif
                     </div>
                     <div class="checkout-product-info">
@@ -46,7 +46,7 @@
                 @for($i = 0; $i < 4; $i++)
                 <div class="checkout-product-card">
                     <div class="checkout-product-img">
-                        <div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:30px;">🧥</div>
+                        <div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:30px;">📦</div>
                     </div>
                     <div class="checkout-product-info">
                         <div class="checkout-product-name">Basic Slim Fit T-Shirt</div>

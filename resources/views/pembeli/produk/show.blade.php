@@ -12,9 +12,13 @@
                 @php
                     $foto = $produk->foto
                         ? Storage::url($produk->foto)
-                        : 'https://picsum.photos/id/' . (($produk->id % 50) + 100) . '/600/700';
+                        : null;
                 @endphp
-                <img src="{{ $foto }}" alt="{{ $produk->nama_produk }}" class="w-full h-80 md:h-full object-cover">
+                @if($foto)
+                    <img src="{{ $foto }}" alt="{{ $produk->nama_produk }}" class="w-full h-80 md:h-full object-cover">
+                @else
+                    <div class="w-full h-80 md:h-full bg-pink-50 flex items-center justify-center text-8xl">📦</div>
+                @endif
             </div>
 
             {{-- Detail --}}
@@ -72,7 +76,7 @@
                                 <button type="button" onclick="changeQty(-1)"
                                     class="px-4 py-3 hover:bg-gray-100 font-bold text-lg leading-none">−</button>
                                 <input type="number" name="jumlah" id="qty" value="1" min="1"
-                                    class="w-14 text-center py-3 border-x border-gray-300 focus:outline-none text-sm font-medium">
+                                    class="w-14 text-center border-x border-gray-300 focus:outline-none text-sm font-medium appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]" style="height:48px; line-height:48px; padding:0; vertical-align:middle;">
                                 <button type="button" onclick="changeQty(1)"
                                     class="px-4 py-3 hover:bg-gray-100 font-bold text-lg leading-none">+</button>
                             </div>

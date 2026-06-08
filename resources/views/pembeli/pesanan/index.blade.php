@@ -55,7 +55,7 @@
                                 @if($foto)
                                     <img src="{{ $foto }}" class="w-10 h-10 rounded-xl object-cover">
                                 @else
-                                    <div class="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center text-lg">🧥</div>
+                                    <div class="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center text-lg">📦</div>
                                 @endif
                             @endforeach
                             @if($pesanan->details->count() > 3)

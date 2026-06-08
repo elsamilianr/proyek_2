@@ -9,7 +9,7 @@
 <body class="bg-[#F3A1BC] min-h-screen flex items-center justify-center font-sans">
     <div class="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md mx-4">
         <div class="flex justify-center mb-6">
-            <div class="w-16 h-16 bg-[#F3A1BC] rounded-2xl flex items-center justify-center text-4xl font-bold text-white">K</div>
+            <img src="{{ asset('images/logo.jpeg') }}" alt="Logo" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">
         </div>
         <h1 class="text-3xl font-bold text-center mb-1">KIKI HIJAB</h1>
         <p class="text-center text-gray-500 text-sm mb-8">Masuk untuk melanjutkan belanja</p>

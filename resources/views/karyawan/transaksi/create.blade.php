@@ -63,10 +63,8 @@
     </div>
     {{-- Opsi tambahan Midtrans --}}
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;">
-        <button type="button" class="payment-btn" onclick="pilihMetode('gopay','gopay',this)"
-                style="font-size:13px;">💚 GoPay <span style="font-size:10px;font-weight:400;display:block;color:#9ca3af;">via Midtrans</span></button>
-        <button type="button" class="payment-btn" onclick="pilihMetode('credit_card','credit_card',this)"
-                style="font-size:13px;">💳 Kartu Kredit/Debit <span style="font-size:10px;font-weight:400;display:block;color:#9ca3af;">via Midtrans</span></button>
+        <button type="button" class="payment-btn" onclick="pilihMetode('gopay','gopay',this)">GoPay</button>
+        <button type="button" class="payment-btn" onclick="pilihMetode('credit_card','credit_card',this)">Kartu Kredit/Debit</button>
     </div>
 </div>
 
@@ -108,6 +106,7 @@ let selectedMetode = null, selectedChannel = null;
 /* ─── Gambar produk ─── */
 function getImage(foto) {
     if (foto) return `<img src="/storage/${foto}" style="width:100%;height:100%;object-fit:cover;">`;
+    return `<div style="width:100%;height:100%;background:#fdf2f8;display:flex;align-items:center;justify-content:center;font-size:40px;">📦</div>`;
     return `<div style="width:100%;height:100%;background:#f0f0f0;display:flex;align-items:center;
             justify-content:center;color:#ccc;font-size:36px;">📦</div>`;
 }
@@ -203,18 +202,18 @@ function renderCart() {
         div.className = 'product-card';
         div.innerHTML = `
             <div class="product-card-image">${getImage(item.produk?.foto)}</div>
-            <div class="product-card-body" style="flex-direction:column;align-items:stretch;gap:8px;">
-                <div>
-                    <div class="product-card-name">${item.produk?.nama_produk ?? '-'}</div>
-                    <div style="font-size:11px;color:var(--text-gray);">${item.warna||'-'} / ${item.size||'-'}</div>
+            <div class="product-card-body" style="flex-direction:column;align-items:stretch;gap:4px;">
+                <div class="product-card-name">${item.produk?.nama_produk ?? '-'}</div>
+                <div style="font-size:11px;color:var(--text-gray);">${item.warna||'-'} / ${item.size||'-'}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
                     <div class="product-card-price" style="font-size:14px;">Rp${Number(item.harga).toLocaleString('id-ID')}</div>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
-                    <button type="button" data-action="minus" data-id="${item.id}"
-                        style="background:var(--pink-card);border:none;border-radius:8px;width:28px;height:28px;font-weight:700;cursor:pointer;font-size:16px;">−</button>
-                    <span style="font-weight:700;min-width:24px;text-align:center;">${item.qty}</span>
-                    <button type="button" data-action="plus" data-id="${item.id}"
-                        style="background:var(--pink-card);border:none;border-radius:8px;width:28px;height:28px;font-weight:700;cursor:pointer;font-size:16px;">+</button>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <button type="button" data-action="minus" data-id="${item.id}"
+                            style="background:var(--pink-card);border:none;border-radius:8px;width:28px;height:28px;font-weight:700;cursor:pointer;font-size:16px;line-height:1;">−</button>
+                        <span style="font-weight:700;min-width:20px;text-align:center;">${item.qty}</span>
+                        <button type="button" data-action="plus" data-id="${item.id}"
+                            style="background:var(--pink-card);border:none;border-radius:8px;width:28px;height:28px;font-weight:700;cursor:pointer;font-size:16px;line-height:1;">+</button>
+                    </div>
                 </div>
             </div>`;
 

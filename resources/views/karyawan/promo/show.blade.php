@@ -22,7 +22,7 @@
     </a>
 </div>
 
-<div style="max-width:720px;">
+<div>
 
     {{-- Header card --}}
     <div style="

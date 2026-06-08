@@ -25,7 +25,7 @@
             @if($item['gambar'] ?? null)
                 <img src="{{ asset('storage/' . $item['gambar']) }}" alt="{{ $item['nama'] }}">
             @else
-                <div style="width:100%;height:100%;background:linear-gradient(135deg,#f5f5f5,#e8e8e8);display:flex;align-items:center;justify-content:center;font-size:40px;">🧥</div>
+                <div style="width:100%;height:100%;background:linear-gradient(135deg,#f5f5f5,#e8e8e8);display:flex;align-items:center;justify-content:center;font-size:40px;">📦</div>
             @endif
         </div>
         <div class="cart-card-body">
@@ -56,7 +56,7 @@
     @for($i = 0; $i < 3; $i++)
     <div class="cart-card">
         <div class="cart-card-image">
-            <div style="width:100%;height:180px;background:linear-gradient(135deg,#f5f5f5,#e8e8e8);display:flex;align-items:center;justify-content:center;font-size:40px;">🧥</div>
+            <div style="width:100%;height:180px;background:linear-gradient(135deg,#f5f5f5,#e8e8e8);display:flex;align-items:center;justify-content:center;font-size:40px;">📦</div>
         </div>
         <div class="cart-card-body">
             <div class="cart-card-menu">

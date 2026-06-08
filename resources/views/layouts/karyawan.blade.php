@@ -13,7 +13,7 @@
     {{-- NAVBAR --}}
     <nav class="navbar">
         <a href="{{ route('karyawan.dashboard') }}" class="navbar-brand">
-            <div class="navbar-logo-placeholder">H</div>
+            <img src="{{ asset('images/logo.jpeg') }}" alt="Logo" class="navbar-logo" >
             <span class="navbar-title">Hayki</span>
         </a>
 

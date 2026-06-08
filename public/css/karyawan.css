@@ -64,10 +64,12 @@ body {
 }
 
 .navbar-logo {
+    display: block;
     width: 44px;
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
+    vertical-align: middle;
 }
 
 .navbar-logo-placeholder {

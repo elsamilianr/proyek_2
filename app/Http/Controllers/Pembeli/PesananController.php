@@ -207,7 +207,7 @@ class PesananController extends Controller
 
         return redirect()
             ->route('pembeli.pesanan.show', $pesanan->id)
-            ->with('success', 'Pesanan berhasil dibuat! Bukti pembayaran sedang diverifikasi.');
+            ->with('success', 'Bukti pembayaran berhasil dikirim! Pesanan sedang diproses.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
