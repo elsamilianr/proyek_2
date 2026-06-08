@@ -95,11 +95,30 @@
                             </div>
                         </label>
 
-                        <label class="flex items-center gap-3 border rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
-                            <input type="radio" name="metode" value="qris" class="accent-[#F3A1BC]">
+                        {{-- QRIS via Midtrans --}}
+                        <label class="flex items-center gap-3 border border-pink-300 rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
+                            <input type="radio" name="metode" value="midtrans" data-midtrans-channel="qris" class="accent-[#F3A1BC]">
                             <div>
-                                <p class="font-medium text-sm">QRIS</p>
-                                <p class="text-xs text-gray-500">Upload bukti pembayaran QRIS</p>
+                                <p class="font-medium text-sm">📱 QRIS</p>
+                                <p class="text-xs text-gray-500">Scan & bayar dengan semua dompet digital</p>
+                            </div>
+                        </label>
+
+                        {{-- GoPay via Midtrans --}}
+                        <label class="flex items-center gap-3 border border-pink-300 rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
+                            <input type="radio" name="metode" value="midtrans" data-midtrans-channel="gopay" class="accent-[#F3A1BC]">
+                            <div>
+                                <p class="font-medium text-sm">💚 GoPay</p>
+                                <p class="text-xs text-gray-500">Bayar menggunakan saldo GoPay</p>
+                            </div>
+                        </label>
+
+                        {{-- Kartu Kredit/Debit via Midtrans --}}
+                        <label class="flex items-center gap-3 border border-pink-300 rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
+                            <input type="radio" name="metode" value="midtrans" data-midtrans-channel="credit_card" class="accent-[#F3A1BC]">
+                            <div>
+                                <p class="font-medium text-sm">💳 Kartu Kredit / Debit</p>
+                                <p class="text-xs text-gray-500">Visa, Mastercard, dan kartu bank lainnya</p>
                             </div>
                         </label>
 
@@ -108,15 +127,6 @@
                             <div>
                                 <p class="font-medium text-sm">Bayar di Toko</p>
                                 <p class="text-xs text-gray-500">Pembayaran dilakukan saat mengambil pesanan</p>
-                            </div>
-                        </label>
-
-                        {{-- MIDTRANS --}}
-                        <label class="flex items-center gap-3 border border-pink-300 rounded-2xl p-4 cursor-pointer hover:bg-pink-50">
-                            <input type="radio" name="metode" value="midtrans" class="accent-[#F3A1BC]">
-                            <div>
-                                <p class="font-medium text-sm">💳 Bayar Online (Midtrans)</p>
-                                <p class="text-xs text-gray-500">GoPay, OVO, Transfer Bank, Kartu Kredit & lainnya</p>
                             </div>
                         </label>
 
@@ -188,7 +198,7 @@
                     </button>
 
                     <p class="text-xs text-gray-400 text-center mt-3">
-                        Transfer / QRIS akan lanjut ke upload bukti pembayaran
+                        Transfer Bank akan lanjut ke upload bukti pembayaran
                     </p>
 
                 </div>
@@ -203,29 +213,33 @@
 
     <script>
     document.getElementById('btnBuatPesanan').addEventListener('click', async function () {
-        const metode = document.querySelector('input[name="metode"]:checked')?.value;
+        const selectedInput = document.querySelector('input[name="metode"]:checked');
+        const metode = selectedInput?.value;
 
         if (!metode) {
             alert('Pilih metode pembayaran terlebih dahulu.');
             return;
         }
 
-        // Jika bukan Midtrans, submit form biasa
+        // Transfer Bank & Cash → submit form biasa
+        // Transfer: redirect ke form upload (pesanan dibuat setelah upload bukti)
+        // Cash: pesanan langsung dibuat
         if (metode !== 'midtrans') {
             document.getElementById('formCheckout').submit();
             return;
         }
+
+        const midtransChannel = selectedInput?.dataset?.midtransChannel ?? null;
 
         const btn = this;
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
 
         try {
-            // Langkah 1: Buat pesanan via AJAX dengan header XMLHttpRequest
-            // agar Laravel mendeteksi sebagai AJAX dan return JSON
+            // Langkah 1: Simpan data checkout ke session (belum buat pesanan)
             const formData = new FormData(document.getElementById('formCheckout'));
 
-            const resPesanan = await fetch('{{ route("pembeli.pesanan.buat") }}', {
+            const resSimpan = await fetch('{{ route("pembeli.pesanan.buat") }}', {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
@@ -234,18 +248,13 @@
                 body: formData,
             });
 
-            if (!resPesanan.ok) {
-                const err = await resPesanan.json();
-                throw new Error(err.message ?? 'Gagal membuat pesanan.');
+            if (!resSimpan.ok) {
+                const err = await resSimpan.json();
+                throw new Error(err.message ?? 'Gagal menyimpan data checkout.');
             }
 
-            const pesananData = await resPesanan.json();
-            const pesananId   = pesananData.pesanan_id;
-            console.log('Response pesanan:', pesananData);
-            console.log('Pesanan ID:', pesananId);  
-
-            // Langkah 2: Ambil Snap Token
-            const resToken = await fetch(`/midtrans/token/${pesananId}`, {
+            // Langkah 2: Ambil Snap Token (pesanan dummy / token sementara)
+            const resToken = await fetch('{{ route("midtrans.token.pending") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -261,30 +270,67 @@
                 throw new Error(tokenData.error);
             }
 
-            // Langkah 3: Buka popup Snap Midtrans
-            snap.pay(tokenData.snap_token, {
-                onSuccess: function () {
-                    window.location.href = `/pesanan/${pesananId}`;
+            // Langkah 3: Buka Snap — pesanan BARU dibuat hanya setelah ini sukses
+            const snapOptions = {
+                onSuccess: async function () {
+                    await konfirmasiDanRedirect('sukses');
                 },
-                onPending: function () {
-                    window.location.href = `/pesanan/${pesananId}`;
+                onPending: async function () {
+                    await konfirmasiDanRedirect('pending');
                 },
                 onError: function () {
-                    alert('Pembayaran gagal. Silakan coba lagi.');
-                    window.location.href = `/pesanan/${pesananId}`;
+                    alert('Pembayaran gagal. Data pesanan belum dibuat.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Buat Pesanan';
                 },
                 onClose: function () {
-                    window.location.href = `/pesanan/${pesananId}`;
+                    // User menutup Snap tanpa bayar — tidak buat pesanan
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Buat Pesanan';
                 },
-            });
+            };
+
+            if (midtransChannel) {
+                snapOptions.enabledPayments = [midtransChannel];
+            }
+
+            snap.pay(tokenData.snap_token, snapOptions);
 
         } catch (err) {
             alert('Terjadi kesalahan: ' + err.message);
-        } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Buat Pesanan';
         }
     });
+
+    // Dipanggil setelah Snap sukses/pending — baru buat pesanan di DB
+    async function konfirmasiDanRedirect(status) {
+        try {
+            const selectedInput = document.querySelector('input[name="metode"]:checked');
+            const midtransChannel = selectedInput?.dataset?.midtransChannel ?? 'midtrans';
+
+            const res = await fetch('{{ route("midtrans.konfirmasi") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ status: status, midtrans_channel: midtransChannel }),
+            });
+
+            const data = await res.json();
+
+            if (data.pesanan_id) {
+                window.location.href = `/pesanan/${data.pesanan_id}?bayar=${status}#upload-bukti`;
+            } else {
+                throw new Error(data.error ?? 'Gagal membuat pesanan.');
+            }
+        } catch (err) {
+            alert('Pembayaran diterima tapi gagal membuat pesanan: ' + err.message + '\nHubungi admin.');
+        }
+    }
     </script>
 
 </x-pembeli-layout>

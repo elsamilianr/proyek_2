@@ -10,11 +10,15 @@ class TransaksiController extends Controller
 {
     public function index()
     {
-        $transaksi = Transaksi::with('details.varian.produk')->latest()->get();
+        // Load karyawan (user) agar mobile bisa tampilkan nama kasir
+        $transaksi = Transaksi::with([
+            'karyawan:id,nama',
+            'details.varian.produk:id,nama_produk',
+        ])->latest()->get();
 
         return response()->json([
             'success' => true,
-            'data' => $transaksi
+            'data'    => $transaksi
         ]);
     }
 }

@@ -25,6 +25,41 @@
     @endphp
 
     <div class="space-y-6">
+
+        {{-- Notifikasi status dari Midtrans Snap --}}
+        @if(request('bayar') === 'sukses')
+            <div class="bg-green-50 border border-green-200 rounded-3xl p-4 flex items-center gap-3">
+                <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                <div>
+                    <p class="font-semibold text-green-700 text-sm">Pembayaran berhasil!</p>
+                    <p class="text-xs text-green-600">Silakan upload bukti pembayaran di bawah untuk konfirmasi.</p>
+                </div>
+            </div>
+        @elseif(request('bayar') === 'pending')
+            <div class="bg-yellow-50 border border-yellow-200 rounded-3xl p-4 flex items-center gap-3">
+                <i class="fas fa-clock text-yellow-500 text-xl"></i>
+                <div>
+                    <p class="font-semibold text-yellow-700 text-sm">Pembayaran sedang diproses</p>
+                    <p class="text-xs text-yellow-600">Upload bukti pembayaran untuk mempercepat verifikasi.</p>
+                </div>
+            </div>
+        @elseif(request('bayar') === 'gagal')
+            <div class="bg-red-50 border border-red-200 rounded-3xl p-4 flex items-center gap-3">
+                <i class="fas fa-times-circle text-red-500 text-xl"></i>
+                <div>
+                    <p class="font-semibold text-red-700 text-sm">Pembayaran gagal</p>
+                    <p class="text-xs text-red-600">Silakan coba lagi atau upload bukti jika sudah membayar.</p>
+                </div>
+            </div>
+        @elseif(request('bayar') === 'ditutup')
+            <div class="bg-blue-50 border border-blue-200 rounded-3xl p-4 flex items-center gap-3">
+                <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                <div>
+                    <p class="font-semibold text-blue-700 text-sm">Popup pembayaran ditutup</p>
+                    <p class="text-xs text-blue-600">Jika sudah membayar, upload bukti di bawah untuk konfirmasi.</p>
+                </div>
+            </div>
+        @endif
         {{-- Header Pesanan --}}
         <div class="bg-white/90 rounded-3xl p-6 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -122,7 +157,20 @@
                             class="w-24 h-24 rounded-2xl object-cover border" alt="Bukti pembayaran">
                     @endif
                     <div>
-                        <p class="text-sm font-medium text-gray-700">Metode: {{ ucfirst(str_replace('_', ' ', $pesanan->pembayaran->metode)) }}</p>
+                        <p class="text-sm font-medium text-gray-700">Metode:
+                            @php
+                                $labelMetode = match($pesanan->pembayaran->metode) {
+                                    'qris'        => 'QRIS',
+                                    'gopay'       => 'GoPay',
+                                    'credit_card' => 'Kartu Kredit',
+                                    'transfer'    => 'Transfer Bank',
+                                    'cash'        => 'Bayar di Tempat (Cash)',
+                                    'midtrans'    => 'Midtrans',
+                                    default       => ucwords(str_replace('_', ' ', $pesanan->pembayaran->metode)),
+                                };
+                            @endphp
+                            {{ $labelMetode }}
+                        </p>
                         <p class="text-sm text-gray-500">Status: <span class="font-semibold">{{ $pesanan->pembayaran->label_status }}</span></p>
                         @if($pesanan->pembayaran->catatan)
                             <p class="text-xs text-red-500 mt-2">Catatan: {{ $pesanan->pembayaran->catatan }}</p>
@@ -132,17 +180,106 @@
             </div>
         @endif
 
-        {{-- Aksi --}}
-        @if($pesanan->status_pesanan === 'menunggu_pembayaran')
-            <div class="bg-yellow-50 border border-yellow-200 rounded-3xl p-6 text-center">
-                <i class="fas fa-exclamation-circle text-yellow-500 text-3xl mb-3 block"></i>
-                <p class="font-semibold text-yellow-700 mb-1">Segera Lakukan Pembayaran</p>
-                <p class="text-sm text-yellow-600 mb-4">Upload bukti transfer/pembayaran untuk memproses pesananmu.</p>
-                <a href="{{ route('pembeli.pesanan.pembayaran', $pesanan->id) }}"
-                    class="bg-black text-white px-6 py-3 rounded-3xl font-medium hover:bg-gray-800 transition text-sm">
-                    <i class="fas fa-upload mr-2"></i> Upload Bukti Bayar
-                </a>
+        {{-- Form upload bukti: muncul jika metode bukan cash dan pesanan belum selesai/dibatalkan --}}
+        @if(
+            $pesanan->pembayaran &&
+            $pesanan->pembayaran->metode !== 'cash' &&
+            !in_array($pesanan->status_pesanan, ['selesai', 'dibatalkan'])
+        )
+            <div id="upload-bukti" class="bg-white/90 rounded-3xl p-6 shadow-sm scroll-mt-8">
+                <h2 class="text-lg font-bold mb-4">
+                    <i class="fas fa-receipt text-pink-400 mr-2"></i>
+                    {{ $pesanan->pembayaran->bukti_pembayaran ? 'Perbarui Bukti Pembayaran' : 'Upload Bukti Pembayaran' }}
+                </h2>
+                <p class="text-sm text-gray-500 mb-4">
+                    {{ $pesanan->pembayaran->bukti_pembayaran
+                        ? 'Sudah ada bukti yang dikirim. Kamu bisa mengirim ulang jika ada kesalahan.'
+                        : 'Selesaikan pembayaranmu lalu upload bukti di sini.' }}
+                </p>
+
+                @if($pesanan->pembayaran->bukti_pembayaran)
+                    <div class="mb-4">
+                        <p class="text-xs text-gray-400 mb-2">Bukti saat ini:</p>
+                        <img src="{{ Storage::url($pesanan->pembayaran->bukti_pembayaran) }}"
+                            class="w-32 h-32 rounded-2xl object-cover border border-pink-200" alt="Bukti Pembayaran">
+                    </div>
+                @endif
+
+                <form id="formUploadBukti" action="{{ route('pembeli.pesanan.bukti', $pesanan->id) }}"
+                    method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="metode" value="{{ $pesanan->pembayaran->metode }}">
+
+                    <div class="border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center
+                        hover:border-pink-300 transition cursor-pointer mb-4"
+                        id="dropzoneBukti">
+                        <div id="show-bukti-placeholder">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-gray-300 mb-2 block"></i>
+                            <p class="text-sm text-gray-500">Klik untuk pilih gambar</p>
+                            <p class="text-xs text-gray-400 mt-1">JPG, PNG, WEBP — Maks 5MB</p>
+                        </div>
+                        <img id="show-bukti-preview" class="hidden mx-auto max-h-40 rounded-2xl object-contain" alt="Preview">
+                    </div>
+                    <input type="file" id="bukti-show-input" name="bukti_pembayaran"
+                        accept="image/jpg,image/jpeg,image/png,image/webp" class="hidden"
+                        onchange="previewShowBukti(event)">
+                    <p id="bukti-error" class="text-red-500 text-xs mb-3 hidden">Pilih gambar terlebih dahulu.</p>
+
+                    <button type="button" onclick="submitBukti()"
+                        class="w-full bg-black text-white py-3 rounded-3xl font-semibold text-sm hover:bg-gray-800 transition">
+                        <i class="fas fa-paper-plane mr-2"></i> Kirim Bukti Pembayaran
+                    </button>
+                </form>
             </div>
         @endif
     </div>
+
+    @push('scripts')
+    <script>
+    // Klik dropzone → buka file picker
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropzone = document.getElementById('dropzoneBukti');
+        if (dropzone) {
+            dropzone.addEventListener('click', function () {
+                document.getElementById('bukti-show-input').click();
+            });
+        }
+
+        // Auto-scroll ke form upload jika redirect dari Snap Midtrans
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('bayar')) {
+            const target = document.getElementById('upload-bukti');
+            if (target) {
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 400);
+            }
+        }
+    });
+
+    function previewShowBukti(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        document.getElementById('bukti-error').classList.add('hidden');
+        const reader = new FileReader();
+        reader.onload = ev => {
+            document.getElementById('show-bukti-placeholder').classList.add('hidden');
+            const img = document.getElementById('show-bukti-preview');
+            img.src = ev.target.result;
+            img.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function submitBukti() {
+        const input = document.getElementById('bukti-show-input');
+        if (!input.files || input.files.length === 0) {
+            document.getElementById('bukti-error').classList.remove('hidden');
+            document.getElementById('dropzoneBukti').classList.add('border-red-400');
+            return;
+        }
+        document.getElementById('formUploadBukti').submit();
+    }
+    </script>
+    @endpush
 </x-pembeli-layout>

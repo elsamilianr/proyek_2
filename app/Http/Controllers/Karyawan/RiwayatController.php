@@ -58,14 +58,14 @@ class RiwayatController extends Controller
     {
         $pesanan = Pesanan::withTrashed()
             ->with([
-                'pembeli',
+                'pembeli', 
                 'details.varian.produk',
                 'pembayaran',
                 'promo'
             ])
             ->findOrFail($id);
 
-        return view('karyawan.riwayat.show-pesanan', compact('pesanan'));
+        return view('karyawan.riwayat.show-transaksi', compact('pesanan'));
     }
 
     public function showTransaksi($id)
@@ -76,6 +76,6 @@ class RiwayatController extends Controller
             'promo'
         ])->findOrFail($id);
 
-        return view('karyawan.riwayat.show-transaksi', compact('transaksi'));
+        return view('karyawan.riwayat.show-transaksi-offline', compact('transaksi'));
     }
 }

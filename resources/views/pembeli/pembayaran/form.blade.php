@@ -1,23 +1,30 @@
 <x-pembeli-layout>
     <div class="mb-4">
-        <a href="{{ route('pembeli.pesanan.show', $pesanan->id) }}" class="text-white/70 hover:text-white text-sm">
-            <i class="fas fa-arrow-left mr-1"></i> Kembali ke Detail Pesanan
+        <a href="{{ route('pembeli.checkout') }}" class="text-white/70 hover:text-white text-sm">
+            <i class="fas fa-arrow-left mr-1"></i> Kembali ke Checkout
         </a>
     </div>
 
     <h1 class="text-3xl font-bold text-white mb-8">Upload Bukti Pembayaran</h1>
 
     <div class="max-w-2xl mx-auto space-y-6">
-        {{-- Info Pesanan --}}
+
+        {{-- Info Pesanan dari Session --}}
         <div class="bg-white/90 rounded-3xl p-6 shadow-sm">
             <h2 class="text-lg font-bold mb-3">Ringkasan Pesanan</h2>
-            <div class="flex justify-between items-center text-sm text-gray-600">
-                <span>Kode Pesanan</span>
-                <span class="font-bold text-base text-gray-900">{{ $pesanan->kode_pesanan }}</span>
+            <div class="divide-y divide-gray-100">
+                @foreach($keranjang->details as $detail)
+                    <div class="py-3 flex justify-between items-center text-sm text-gray-700">
+                        <span>{{ $detail->varian?->produk?->nama_produk ?? '-' }}
+                            <span class="text-gray-400">× {{ $detail->jumlah }}</span>
+                        </span>
+                        <span class="font-medium">Rp {{ number_format($detail->jumlah * ($detail->varian->harga ?? 0), 0, ',', '.') }}</span>
+                    </div>
+                @endforeach
             </div>
-            <div class="flex justify-between items-center text-sm text-gray-600 mt-2">
-                <span>Total yang harus dibayar</span>
-                <span class="font-bold text-xl text-[#F3A1BC]">Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}</span>
+            <div class="flex justify-between items-center mt-4 pt-3 border-t">
+                <span class="text-sm text-gray-500">Metode</span>
+                <span class="font-medium text-sm">Transfer Bank</span>
             </div>
         </div>
 
@@ -38,19 +45,12 @@
                         <i class="fas fa-copy mr-1"></i>Salin
                     </button>
                 </div>
-                <div class="bg-white rounded-2xl p-4 flex justify-between items-center">
-                    <div>
-                        <p class="text-gray-500 text-xs">QRIS</p>
-                        <p class="text-gray-600 text-sm">Scan QRIS di toko atau hubungi admin</p>
-                    </div>
-                    <i class="fas fa-qrcode text-pink-400 text-2xl"></i>
-                </div>
             </div>
         </div>
 
         {{-- Form Upload --}}
         <div class="bg-white/90 rounded-3xl p-6 shadow-sm">
-            <h2 class="text-lg font-bold mb-5">Upload Bukti Pembayaran</h2>
+            <h2 class="text-lg font-bold mb-5">Upload Bukti Transfer</h2>
 
             @if ($errors->any())
                 <div class="bg-red-50 text-red-600 rounded-2xl p-4 mb-4 text-sm">
@@ -62,28 +62,12 @@
                 </div>
             @endif
 
-            <form action="{{ route('pembeli.pembayaran.upload', $pesanan->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('pembeli.pembayaran.upload') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-
-                {{-- Metode --}}
-                <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Metode Pembayaran</label>
-                    <div class="flex gap-3 flex-wrap">
-                        @foreach(['transfer' => 'Transfer Bank', 'qris' => 'QRIS', 'cash' => 'COD / Tunai'] as $val => $label)
-                            <label class="cursor-pointer">
-                                <input type="radio" name="metode" value="{{ $val }}" class="hidden peer" {{ old('metode', 'transfer') === $val ? 'checked' : '' }}>
-                                <span class="block px-4 py-3 border border-gray-300 rounded-2xl text-sm font-medium transition
-                                    peer-checked:border-[#F3A1BC] peer-checked:bg-pink-50 peer-checked:text-pink-600 hover:border-pink-300">
-                                    {{ $label }}
-                                </span>
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
 
                 {{-- Upload file --}}
                 <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Foto Bukti Transfer / Struk</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Foto Bukti Transfer</label>
                     <div class="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:border-pink-300 transition cursor-pointer"
                         onclick="document.getElementById('bukti-input').click()">
                         <div id="preview-wrapper">
@@ -102,10 +86,10 @@
 
                 <button type="submit"
                     class="w-full bg-black text-white py-4 rounded-3xl font-semibold text-base hover:bg-gray-800 transition">
-                    <i class="fas fa-paper-plane mr-2"></i> Kirim Bukti Pembayaran
+                    <i class="fas fa-paper-plane mr-2"></i> Kirim & Buat Pesanan
                 </button>
                 <p class="text-xs text-gray-400 text-center mt-3">
-                    Tim kami akan memverifikasi pembayaranmu dalam 1×24 jam kerja.
+                    Pesanan akan dibuat setelah bukti dikirim. Tim kami memverifikasi dalam 1×24 jam kerja.
                 </p>
             </form>
         </div>

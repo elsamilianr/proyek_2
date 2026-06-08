@@ -29,6 +29,82 @@ class MidtransController extends Controller
         ];
     }
 
+    // ─── Token dari SESSION (sebelum pesanan dibuat di DB) ───────────────────────
+    /**
+     * Dipakai saat checkout Midtrans: data ada di session, pesanan belum ada di DB.
+     * Buat token dengan order_id sementara (temp-{userId}-{time}).
+     */
+    public function getSnapTokenPending(Request $request): JsonResponse
+    {
+        $data = session('checkout_data');
+
+        if (!$data || $data['metode'] !== 'midtrans') {
+            return response()->json(['error' => 'Data checkout tidak ditemukan.'], 422);
+        }
+
+        $user    = Auth::user();
+        $tempId  = 'TEMP-' . $user->id . '-' . time();
+
+        // Hitung total dari items di session
+        $subtotal = 0;
+        $itemDetails = [];
+        foreach ($data['items'] as $item) {
+            $varian    = \App\Models\Varian::with('produk')->find($item['id_varian']);
+            $itemTotal = ($varian->harga ?? 0) * $item['jumlah'];
+            $subtotal += $itemTotal;
+            $itemDetails[] = [
+                'id'       => $item['id_varian'],
+                'price'    => (int) ($varian->harga ?? 0),
+                'quantity' => $item['jumlah'],
+                'name'     => substr($varian->produk->nama_produk ?? 'Produk', 0, 50),
+            ];
+        }
+
+        $diskon = 0;
+        if (!empty($data['promo_id'])) {
+            $promo  = \App\Models\Promo::find($data['promo_id']);
+            $diskon = $promo ? $promo->hitungDiskon($subtotal) : 0;
+            if ($diskon > 0) {
+                $itemDetails[] = [
+                    'id'       => 'DISKON',
+                    'price'    => -(int) $diskon,
+                    'quantity' => 1,
+                    'name'     => 'Diskon Promo',
+                ];
+            }
+        }
+
+        $total = $subtotal - $diskon;
+
+        $params = [
+            'transaction_details' => [
+                'order_id'     => $tempId,
+                'gross_amount' => (int) $total,
+            ],
+            'customer_details' => [
+                'first_name' => $user->nama ?? $user->name,
+                'email'      => $user->email,
+                'phone'      => $user->no_hp ?? '',
+            ],
+            'item_details' => $itemDetails,
+        ];
+
+        try {
+            $snapToken = Snap::getSnapToken($params);
+
+            // Simpan temp order id ke session agar bisa dipakai konfirmasi
+            session(['checkout_midtrans_temp_id' => $tempId]);
+
+            return response()->json([
+                'snap_token' => $snapToken,
+                'client_key' => config('services.midtrans.client_key'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Midtrans getSnapTokenPending error: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal membuat token pembayaran.'], 500);
+        }
+    }
+
     public function getSnapToken(Request $request, int $pesananId): JsonResponse
     {
         $pesanan = Pesanan::with(['details.varian', 'pembeli'])

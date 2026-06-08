@@ -88,6 +88,8 @@ Route::prefix('karyawan')
             ->name('transaksi.cari-varian');
         Route::get('/transaksi/kasir', [TransaksiController::class, 'create'])
             ->name('transaksi.create');
+        Route::post('/transaksi/midtrans-token', [TransaksiController::class, 'getMidtransToken'])
+            ->name('transaksi.midtrans-token');
         Route::post('/transaksi', [TransaksiController::class, 'store'])
             ->name('transaksi.store');
         Route::get('/transaksi/{transaksi}/struk', [TransaksiController::class, 'struk'])
@@ -135,15 +137,20 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/keranjang/{detail}',  [KeranjangController::class, 'hapus']) ->name('pembeli.keranjang.hapus');
 
     // Pesanan — PesananController
-    Route::post('/midtrans/token/{pesanan}', [MidtransController::class, 'getSnapToken']) ->name('midtrans.token');
-    Route::get ('/checkout',          [PembeliPesananController::class, 'checkout'])      ->name('pembeli.checkout');
-    Route::post('/pesanan',           [PembeliPesananController::class, 'store'])          ->name('pembeli.pesanan.buat');
-    Route::get ('/pesanan',           [PembeliPesananController::class, 'index'])          ->name('pembeli.pesanan.index');
-    Route::get ('/pesanan/{pesanan}', [PembeliPesananController::class, 'show'])           ->name('pembeli.pesanan.show');
+    Route::post('/midtrans/token/{pesanan}',   [MidtransController::class,      'getSnapToken'])        ->name('midtrans.token');
+    Route::post('/midtrans/token-pending',     [MidtransController::class,      'getSnapTokenPending']) ->name('midtrans.token.pending');
+    Route::post('/midtrans/konfirmasi',        [PembeliPesananController::class, 'konfirmasiMidtrans']) ->name('midtrans.konfirmasi');
+    Route::get ('/checkout',                  [PembeliPesananController::class, 'checkout'])          ->name('pembeli.checkout');
+    Route::post('/pesanan',                   [PembeliPesananController::class, 'store'])             ->name('pembeli.pesanan.buat');
+    Route::get ('/pesanan',                   [PembeliPesananController::class, 'index'])             ->name('pembeli.pesanan.index');
+    Route::get ('/pesanan/{pesanan}',         [PembeliPesananController::class, 'show'])              ->name('pembeli.pesanan.show');
 
-    // Pembayaran (bagian alur pesanan) — tetap di PesananController
-    Route::get ('/pembayaran/{pesanan}', [PembeliPesananController::class, 'formPembayaran'])->name('pembeli.pesanan.pembayaran');
-    Route::post('/pembayaran/{pesanan}', [PembeliPesananController::class, 'uploadBukti'])   ->name('pembeli.pembayaran.upload');
+    // Pembayaran Transfer Bank (dari session, belum ada pesanan)
+    Route::get ('/pembayaran',                [PembeliPesananController::class, 'formPembayaran'])    ->name('pembeli.pesanan.pembayaran.form');
+    Route::post('/pembayaran',                [PembeliPesananController::class, 'uploadBukti'])       ->name('pembeli.pembayaran.upload');
+
+    // Upload/perbarui bukti di halaman detail pesanan (pesanan sudah ada)
+    Route::post('/pesanan/{pesanan}/bukti',   [PembeliPesananController::class, 'uploadBuktiPesanan'])->name('pembeli.pesanan.bukti');
 });
 
 // Webhook Midtrans — tidak pakai auth

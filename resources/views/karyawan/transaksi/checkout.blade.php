@@ -67,20 +67,20 @@
         <div class="mb-24">
             <div class="form-label" style="font-size:16px;margin-bottom:12px;">Metode Pembayaran</div>
             <div class="payment-methods">
-                <button type="button" class="payment-btn" onclick="pilihMetode('QRIS', this)">
+                <button type="button" class="payment-btn" onclick="pilihMetode('qris', this)">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                         <rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M18 14h.01M14 18h.01M18 18h.01"/>
                     </svg>
                     QRIS
                 </button>
-                <button type="button" class="payment-btn" onclick="showBankModal(this)">
+                <button type="button" class="payment-btn" onclick="pilihMetode('gopay', this)">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11"/>
+                        <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/>
                     </svg>
-                    BANK
+                    GoPay
                 </button>
-                <button type="button" class="payment-btn" onclick="pilihMetode('CASH', this)">
+                <button type="button" class="payment-btn" onclick="pilihMetode('cash', this)">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/>
                         <path d="M6 12h.01M18 12h.01"/>
@@ -88,27 +88,10 @@
                     CASH
                 </button>
             </div>
-            <input type="hidden" name="metode_pembayaran" id="metodePembayaran" value="">
+            <input type="hidden" name="metode_bayar" id="metodePembayaran" value="">
         </div>
 
     </form>
-</div>
-
-{{-- MODAL PILIH BANK --}}
-<div id="bankModal" class="modal-overlay" style="display:none;" onclick="closeBankModal(event)">
-    <div class="modal-box" onclick="event.stopPropagation()">
-        <div class="modal-title">Pilih Bank</div>
-        <div class="modal-grid">
-            @foreach(['BCA', 'BNI', 'Mandiri', 'BRI'] as $bank)
-            <button class="modal-option" onclick="pilihBank('{{ $bank }}')">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11"/>
-                </svg>
-                BANK
-            </button>
-            @endforeach
-        </div>
-    </div>
 </div>
 
 {{-- FOOTER --}}
@@ -123,29 +106,10 @@
 
 @push('scripts')
 <script>
-let selectedBtn = null;
-
 function pilihMetode(metode, btn) {
     document.getElementById('metodePembayaran').value = metode;
     document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    selectedBtn = btn;
-}
-
-function showBankModal(btn) {
-    selectedBtn = btn;
-    document.getElementById('bankModal').style.display = 'flex';
-}
-
-function closeBankModal(e) {
-    document.getElementById('bankModal').style.display = 'none';
-}
-
-function pilihBank(bank) {
-    document.getElementById('metodePembayaran').value = 'Bank ' + bank;
-    document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('active'));
-    if (selectedBtn) selectedBtn.classList.add('active');
-    document.getElementById('bankModal').style.display = 'none';
 }
 
 function updateQty(key, delta) {

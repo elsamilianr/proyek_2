@@ -59,8 +59,17 @@
             </div>
             <div style="display:flex;justify-content:space-between;font-size:13px;">
                 <span style="color:var(--text-gray);">Metode Bayar</span>
-                <span style="text-transform:uppercase;font-weight:700;">{{ $transaksi->metode_bayar }}</span>
+                <span style="font-weight:700;">{{ $transaksi->label_metode }}</span>
             </div>
+            @if($transaksi->midtrans_order_id)
+            <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:12px;">
+                <span style="color:var(--text-gray);">ID Pembayaran</span>
+                <span style="font-weight:600;color:var(--pink-primary);">{{ $transaksi->midtrans_order_id }}</span>
+            </div>
+            <div style="margin-top:6px;padding:6px 10px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#16a34a;font-weight:700;text-align:center;">
+                ✓ Pembayaran Terverifikasi Midtrans
+            </div>
+            @endif
         </div>
 
         {{-- Item produk --}}

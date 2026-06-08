@@ -186,47 +186,78 @@
     {{-- PRODUK + PEMBAYARAN --}}
     <div class="two-column">
 
-        {{-- PRODUK --}}
-        <div class="detail-card">
-            <div class="section-title">Produk Dipesan</div>
+        {{-- KOLOM KIRI: Produk + Ubah Status --}}
+        <div style="display:flex;flex-direction:column;gap:24px;">
 
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Produk</th>
-                        <th>Varian</th>
-                        <th style="text-align:center;">Qty</th>
-                        <th style="text-align:right;">Harga</th>
-                        <th style="text-align:right;">Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($pesanan->details as $detail)
-                    <tr>
-                        <td><strong>{{ $detail->varian->produk->nama_produk }}</strong></td>
-                        <td>{{ $detail->varian->label }}</td>
-                        <td style="text-align:center;">{{ $detail->jumlah }}</td>
-                        <td style="text-align:right;">Rp{{ number_format($detail->harga,0,',','.') }}</td>
-                        <td style="text-align:right;font-weight:700;">
-                            Rp{{ number_format($detail->subtotal,0,',','.') }}
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            {{-- PRODUK --}}
+            <div class="detail-card">
+                <div class="section-title">Produk Dipesan</div>
 
-            <div style="margin-top:18px;">
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <span>Rp{{ number_format($pesanan->subtotal,0,',','.') }}</span>
-                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Produk</th>
+                            <th>Varian</th>
+                            <th style="text-align:center;">Qty</th>
+                            <th style="text-align:right;">Harga</th>
+                            <th style="text-align:right;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($pesanan->details as $detail)
+                        <tr>
+                            <td><strong>{{ $detail->varian->produk->nama_produk }}</strong></td>
+                            <td>{{ $detail->varian->label }}</td>
+                            <td style="text-align:center;">{{ $detail->jumlah }}</td>
+                            <td style="text-align:right;">Rp{{ number_format($detail->harga,0,',','.') }}</td>
+                            <td style="text-align:right;font-weight:700;">
+                                Rp{{ number_format($detail->subtotal,0,',','.') }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
 
-                <div class="summary-row summary-total">
-                    <span>Total</span>
-                    <span>Rp{{ number_format($pesanan->total_harga,0,',','.') }}</span>
+                <div style="margin-top:18px;">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>Rp{{ number_format($pesanan->subtotal,0,',','.') }}</span>
+                    </div>
+
+                    <div class="summary-row summary-total">
+                        <span>Total</span>
+                        <span>Rp{{ number_format($pesanan->total_harga,0,',','.') }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            {{-- UBAH STATUS --}}
+            @if($pesanan->status_pesanan !== 'dibatalkan')
+            <div class="detail-card">
+                <div class="section-title">Ubah Status Pesanan</div>
+                <form method="POST" action="{{ route('karyawan.pesanan.update-status', $pesanan) }}">
+                    @csrf
+                    @method('PATCH')
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                        @if($pesanan->status_pesanan === 'diproses')
+                        <button name="status" value="selesai" type="submit"
+                            style="background:#22C55E;color:white;border:none;border-radius:12px;padding:12px 22px;font-weight:700;cursor:pointer;">
+                            ✓ Tandai Selesai
+                        </button>
+                        @endif
+                        @if($pesanan->status_pesanan !== 'selesai')
+                        <button name="status" value="dibatalkan" type="submit"
+                            onclick="return confirm('Batalkan pesanan ini?')"
+                            style="background:#FEE2E2;color:#DC2626;border:none;border-radius:12px;padding:12px 22px;font-weight:700;cursor:pointer;">
+                            ✕ Batalkan Pesanan
+                        </button>
+                        @endif
+                    </div>
+                </form>
+            </div>
+            @endif
+
+        </div>{{-- end kolom kiri --}}
 
         {{-- PEMBAYARAN --}}
         <div class="detail-card">
@@ -236,7 +267,20 @@
                 <div class="info-grid" style="grid-template-columns:1fr;">
                     <div>
                         <div class="info-label">Metode</div>
-                        <div class="info-value">{{ strtoupper($pesanan->pembayaran->metode) }}</div>
+                        <div class="info-value">
+                            @php
+                                $labelMetode = match($pesanan->pembayaran->metode) {
+                                    'qris'        => 'QRIS',
+                                    'gopay'       => 'GoPay',
+                                    'credit_card' => 'Kartu Kredit',
+                                    'transfer'    => 'Transfer Bank',
+                                    'cash'        => 'Cash',
+                                    'midtrans'    => 'Midtrans',
+                                    default       => strtoupper($pesanan->pembayaran->metode),
+                                };
+                            @endphp
+                            {{ $labelMetode }}
+                        </div>
                     </div>
 
                     <div>
@@ -245,45 +289,61 @@
                             Rp{{ number_format($pesanan->pembayaran->jumlah_bayar,0,',','.') }}
                         </div>
                     </div>
+
+                    <div>
+                        <div class="info-label">Status Pembayaran</div>
+                        <div class="info-value" style="font-size:14px;">
+                            {{ $pesanan->pembayaran->label_status }}
+                        </div>
+                    </div>
+
+                    {{-- Bukti Pembayaran --}}
+                    @if($pesanan->pembayaran->bukti_pembayaran)
+                    <div>
+                        <div class="info-label">Bukti Pembayaran</div>
+                        <a href="{{ Storage::url($pesanan->pembayaran->bukti_pembayaran) }}"
+                           target="_blank" title="Lihat bukti pembayaran">
+                            <img src="{{ Storage::url($pesanan->pembayaran->bukti_pembayaran) }}"
+                                 alt="Bukti Pembayaran"
+                                 style="width:100%;max-width:280px;border-radius:12px;border:1px solid #fce7f3;
+                                        margin-top:6px;object-fit:cover;cursor:zoom-in;">
+                        </a>
+                        <p style="font-size:11px;color:#94a3b8;margin-top:6px;">
+                            Klik gambar untuk memperbesar
+                        </p>
+                    </div>
+                    @endif
+
+                    {{-- Catatan dari Pembeli --}}
+                    @if($pesanan->catatan)
+                    <div>
+                        <div class="info-label">Catatan Pembeli</div>
+                        <div style="background:#fdf2f8;border-radius:10px;padding:12px 14px;
+                                    font-size:14px;color:#374151;margin-top:6px;
+                                    border:1px solid #fce7f3;line-height:1.6;">
+                            {{ $pesanan->catatan }}
+                        </div>
+                    </div>
+                    @endif
                 </div>
             @else
                 <div class="payment-empty">
                     Pembeli belum melakukan pembayaran
                 </div>
+
+                @if($pesanan->catatan)
+                <div style="margin-top:16px;">
+                    <div class="info-label">Catatan Pembeli</div>
+                    <div style="background:#fdf2f8;border-radius:10px;padding:12px 14px;
+                                font-size:14px;color:#374151;margin-top:6px;
+                                border:1px solid #fce7f3;line-height:1.6;">
+                        {{ $pesanan->catatan }}
+                    </div>
+                </div>
+                @endif
             @endif
         </div>
     </div>
-
-    {{-- UBAH STATUS FULL --}}
-    @if($pesanan->status_pesanan !== 'dibatalkan')
-    <div class="detail-card">
-        <div class="section-title">Ubah Status Pesanan</div>
-
-        <form method="POST" action="{{ route('karyawan.pesanan.update-status', $pesanan) }}">
-            @csrf
-            @method('PATCH')
-
-            <div style="display:flex;gap:12px;flex-wrap:wrap;">
-
-                @if($pesanan->status_pesanan === 'diproses')
-                <button name="status" value="selesai" type="submit"
-                    style="background:#22C55E;color:white;border:none;border-radius:12px;padding:12px 22px;font-weight:700;cursor:pointer;">
-                    ✓ Tandai Selesai
-                </button>
-                @endif
-
-                @if($pesanan->status_pesanan !== 'selesai')
-                <button name="status" value="dibatalkan" type="submit"
-                    onclick="return confirm('Batalkan pesanan ini?')"
-                    style="background:#FEE2E2;color:#DC2626;border:none;border-radius:12px;padding:12px 22px;font-weight:700;cursor:pointer;">
-                    ✕ Batalkan Pesanan
-                </button>
-                @endif
-
-            </div>
-        </form>
-    </div>
-    @endif
 
 </div>
 
